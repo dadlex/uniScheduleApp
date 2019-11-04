@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="primary_dark">#000</color>
+    <color name="primary">#fff</color>
+    <color name="primary_light">#fff</color>
+
+    <color name="secondary">#d81b60</color>
+    <color name="secondary_light">#ff80ab</color>
+    <color name="secondary_dim">#fce4ec</color>
+
+    <color name="background">#fcfcfc</color>
+    <color name="surface">#fff</color>
+    <color name="error">#f57f17</color>
+
+    <color name="secondary_light_on">#000</color>
+    <color name="secondary_on">#fff</color>
+
+    <color name="divider">#eee</color>
+    <color name="overscroll">#aaa</color>
+
+</resources>

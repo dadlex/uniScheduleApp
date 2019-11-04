@@ -1,0 +1,17 @@
+<resources>
+
+    <!-- Base application theme. -->
+    <style name="Theme.Schedule" parent="Theme.MaterialComponents.Light">
+        <!-- Customize your theme here. -->
+        <item name="colorPrimary">@color/primary</item>
+        <item name="colorPrimaryDark">@color/primary_dark</item>
+        <item name="colorSecondary">@color/secondary</item>
+        <item name="colorError">@color/error</item>
+        <item name="android:colorBackground">@color/background</item>
+        <item name="android:windowBackground">@color/background</item>
+
+        <item name="android:colorEdgeEffect">@color/overscroll</item>
+
+    </style>
+
+</resources>
