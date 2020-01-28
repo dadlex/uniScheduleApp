@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!--<color name="primary_dark">#702670</color>-->
+    <!--<color name="primary">#843584</color>-->
+    <!--<color name="primary_light">#88518a</color>-->
+    <!--<color name="accent">#cf56a1</color>-->
+
     <color name="primary_dark">#000</color>
     <color name="primary">#fff</color>
     <color name="primary_light">#fff</color>
@@ -17,5 +22,60 @@
 
     <color name="divider">#eee</color>
     <color name="overscroll">#aaa</color>
+    
+    <color name="text_dark">#302a33</color>
+    <color name="text_light">#443e47</color>
 
+    <color name="calendar_other_month">#bdbdbd</color>
+
+    <color name="icon_gray">#757575</color>
+    <color name="icon_gray_light">#9e9e9e</color>
+    <color name="inactive_dow_brick_text_color">#9e9e9e</color>
+    <color name="imageDarkOverlay">#50000000</color>
+
+    <color name="priority_none">@color/icon_gray</color>
+    <color name="priority_low">#66bb6a</color>
+    <color name="priority_medium">#ffb74d</color>
+    <color name="priority_high">#c34441</color>
+
+    <color name="nav_drawer_item_text">@color/text_dark</color>
+    <color name="nav_drawer_item_icon">@color/icon_gray</color>
+    <color name="nav_drawer_selected_item_text">@color/nav_drawer_item_text</color>
+    <color name="nav_drawer_selected_item_icon">@color/nav_drawer_item_icon</color>
+    <color name="nav_drawer_selected_item_background">@color/secondary_dim</color>
+
+    <!--chip-->
+    <color name="chip_on">@color/text_dark</color>
+    <color name="chip_background">#eaeaea</color>
+    <color name="chip_icon">@color/icon_gray</color>
+
+    <color name="chip_active_on">@color/secondary_light_on</color>
+    <color name="chip_active_background">@color/secondary_dim</color>
+    <color name="chip_active_icon">@color/primary_light</color>
+    <color name="chip_active_ripple">#000</color>
+
+    <color name="chip_close_button_color">#212121</color>
+    <color name="chip_icon_background">@android:color/transparent</color>
+    <!--/chip-->
+
+    <string-array name="default_subject_colors">
+        <item>#f44336</item>
+        <item>#e81e62</item>
+        <item>#9c27b0</item>
+        <item>#673ab7</item>
+        <item>#3f51b5</item>
+        <item>#2196f3</item>
+        <item>#4fc3f7</item>
+        <item>#00acc1</item>
+        <item>#009688</item>
+        <item>#4caf50</item>
+        <item>#8bc34a</item>
+        <item>#cddc39</item>
+        <item>#ffb300</item>
+        <item>#fb8c00</item>
+        <item>#ff5722</item>
+        <item>#795548</item>
+        <item>#616161</item>
+        <item>#607d8b</item>
+    </string-array>
 </resources>

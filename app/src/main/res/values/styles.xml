@@ -1,8 +1,7 @@
-<resources>
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools">
 
-    <!-- Base application theme. -->
     <style name="Theme.Schedule" parent="Theme.MaterialComponents.Light">
-        <!-- Customize your theme here. -->
         <item name="colorPrimary">@color/primary</item>
         <item name="colorPrimaryDark">@color/primary_dark</item>
         <item name="colorSecondary">@color/secondary</item>
@@ -12,6 +11,66 @@
 
         <item name="android:colorEdgeEffect">@color/overscroll</item>
 
+        <item name="android:navigationBarColor">@color/background</item>
+        <item name="android:windowLightNavigationBar" tools:targetApi="27">true</item>
+        <item name="android:windowLightStatusBar" tools:targetApi="23">true</item>
+
+        <item name="fontFamily">@font/pt_sans</item>
+
+        <item name="dialogCornerRadius">16dp</item>
+        <item name="snackbarButtonStyle">@style/SnackbarButton</item>
     </style>
 
+    <style name="Theme.Schedule.NoActionBar">
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+    </style>
+
+    <style name="Theme.Schedule.AppBarOverlay" parent="ThemeOverlay.AppCompat.Light" />
+
+    <style name="Theme.Schedule.PopupOverlay" parent="ThemeOverlay.AppCompat.Dark" />
+
+    <style name="SnackbarButton" parent="Widget.MaterialComponents.Button.TextButton">
+        <item name="android:textColor">@color/secondary_light</item>
+    </style>
+
+    <style name="TextAppearance.Schedule.Medium" parent="TextAppearance.MaterialComponents.Body1">
+        <item name="android:textSize">16sp</item>
+        <item name="android:textColor">@color/text_dark</item>
+    </style>
+
+    <style name="Theme.Schedule.ChipText" parent="TextAppearance.AppCompat.Small">
+        <item name="android:textColor">@color/chip_on</item>
+    </style>
+
+    <style name="Theme.Schedule.Chip" parent="Widget.MaterialComponents.Chip.Action">
+        <item name="android:textAppearance">@style/Theme.Schedule.ChipText</item>
+    </style>
+
+    <style name="Theme.Schedule.ChipTextActive" parent="Theme.Schedule.ChipText">
+        <item name="android:textColor">@color/chip_active_on</item>
+    </style>
+
+    <style name="Theme.Schedule.ChipActive" parent="Theme.Schedule.Chip">
+        <item name="chipBackgroundColor">@color/chip_active_background</item>
+        <item name="android:textAppearance">@style/Theme.Schedule.ChipTextActive</item>
+        <item name="rippleColor">@color/chip_active_ripple</item>
+    </style>
+
+    <style name="Theme.Schedule.Clickable" parent="Theme.Schedule">
+        <item name="android:clickable">true</item>
+        <item name="android:focusable">true</item>
+        <item name="android:foreground">?selectableItemBackground</item>
+    </style>
+
+    <style name="Theme.Schedule.Row.OneLine" parent="Theme.Schedule.Clickable">
+        <item name="android:gravity">center_vertical</item>
+        <item name="android:onClick">chooseSubject</item>
+        <item name="android:orientation">horizontal</item>
+        <item name="android:paddingStart">@dimen/row_padding_horizontal</item>
+        <item name="android:paddingTop">@dimen/row_padding_vertical</item>
+        <item name="android:paddingEnd">@dimen/row_padding_horizontal</item>
+        <item name="android:paddingBottom">@dimen/row_padding_vertical</item>
+    </style>
 </resources>

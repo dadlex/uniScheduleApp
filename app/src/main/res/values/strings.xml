@@ -1,6 +1,170 @@
 <resources>
     <string name="app_name">Schedule</string>
+
     <string name="title_schedule">Schedule</string>
     <string name="title_tasks">Tasks</string>
     <string name="title_settings">Settings</string>
+
+    <string name="title_activity_new_class">Add Class</string>
+    <string name="title_activity_teachers_list">Teachers</string>
+    <string name="title_activity_teacher">Teacher</string>
+
+    <string name="activity_title_new_teacher">New teacher</string>
+
+    <string name="context_menu_view">View</string>
+    <string name="context_menu_edit">Edit</string>
+    <string name="context_menu_remove">Remove</string>
+
+    <string name="nothing_to_show">Nothing to show</string>
+    <string name="empty_view_subjects">No subjects</string>
+
+    <string name="action_add_new_class">Add New Class</string>
+
+    <string-array name="default_class_types">
+        <item>Class</item>
+        <item>Lecture</item>
+        <item>Seminar</item>
+        <item>Lab</item>
+    </string-array>
+
+    <string-array name="recurrenceTypes">
+        <item>Day</item>
+        <item>Week</item>
+    </string-array>
+
+    <string name="prompt_subject">Subject</string>
+    <string name="button_add_subject">Add subject</string>
+    <string name="dialog_choose_subject">Choose Subject</string>
+
+    <string name="prompt_teacher">Teacher</string>
+    <string name="button_add_teacher">Add</string>
+    <string name="dialog_choose_teacher">Choose Teacher</string>
+
+    <string name="prompt_class_type">Class Type</string>
+    <string name="button_add_class_type">Add</string>
+    <string name="dialog_choose_class_type">Choose Class Type</string>
+
+    <string name="dialog_title_add_subject">Add subject</string>
+    <string name="dialog_title_add_class_type">Add class type</string>
+
+    <string name="prompt_name">Name</string>
+    <string name="prompt_phone">Phone</string>
+    <string name="prompt_location">Location</string>
+    <string name="prompt_time">Time</string>
+    <string name="prompt_recurrence">Recurrence</string>
+    <string name="prompt_date">Date</string>
+
+    <string name="action_settings">Settings</string>
+    <string name="recurrence_never">Do not repeat</string>
+    <string name="recurrence_days">Days</string>
+    <string name="every">Every</string>
+    <string name="dialog_title_recurrence">Recurrence</string>
+    <string name="hint_teachers_name">Name</string>
+    <string name="hint_teachers_phone">Phone</string>
+    <string name="hint_teachers_email">Email</string>
+
+    <string name="dialog_title_delete_teacher_confirmation">Delete teacher?</string>
+    <string name="dialog_message_delete_teacher_confirmation">This does not remove any classes.</string>
+
+    <string name="dialog_title_delete_class_confirmation">Delete class?</string>
+    <string name="dialog_message_delete_class_confirmation">This will cancel all occurrences of this class. All tasks related to it will be lost.</string>
+
+    <string name="options_menu_edit">Edit</string>
+
+    <string name="today">Today</string>
+    <string name="tomorrow">Tomorrow</string>
+    <string name="yesterday">Yesterday</string>
+
+    <string name="next_week">Next week</string>
+    <string name="last_week">Last week</string>
+    <string name="next_month">Next month</string>
+    <string name="last_month">Last month</string>
+
+    <string-array name="next_dows">
+        <item>Next Monday</item>
+        <item>Next Tuesday</item>
+        <item>Next Wednesday</item>
+        <item>Next Thursday</item>
+        <item>Next Friday</item>
+        <item>Next Saturday</item>
+        <item>Next Sunday</item>
+    </string-array>
+
+    <string-array name="last_dows">
+        <item>Last Monday</item>
+        <item>Last Tuesday</item>
+        <item>Last Wednesday</item>
+        <item>Last Thursday</item>
+        <item>Last Friday</item>
+        <item>Last Saturday</item>
+        <item>Last Sunday</item>
+    </string-array>
+
+    <plurals name="in_weeks">
+        <item quantity="one">In one week</item>
+        <item quantity="other">In %d weeks</item>
+    </plurals>
+
+    <plurals name="weeks_ago">
+        <item quantity="one">One week ago</item>
+        <item quantity="other">%d weeks ago</item>
+    </plurals>
+
+    <string name="context_menu_send_email">Send Email</string>
+    <string name="context_menu_phone">Phone</string>
+    <string name="context_menu_call">Call</string>
+    <string name="prompt_unable_to_send_email">There are no email clients installed.</string>
+    <string name="prompt_grant_access_to_phone">Allow the app to get access to Phone in settings.</string>
+    <string-array name="recurrence_options">
+        <item>days</item>
+        <item>weeks</item>
+    </string-array>
+    <plurals name="recurrence_type_days">
+        <item quantity="one">Every day</item>
+        <item quantity="other">Every %d days</item>
+    </plurals>
+    <plurals name="recurrence_type_weeks">
+        <item quantity="one">Every week</item>
+        <item quantity="other">Every %d weeks</item>
+    </plurals>
+    <string name="title_activity_class">Class</string>
+    <string name="task_due_date">Due to %s</string>
+
+    <string name="hint_task_title">New task…</string>
+    <string name="hint_task_description">Add details…</string>
+    <string name="placeholder_task_description">Description</string>
+    <string name="content_description_set_due_date_image_button">Set due date</string>
+    <string name="content_description_set_priority_image_button">Set priority</string>
+    <string name="content_description_send_task_image_button">Send task</string>
+
+    <string name="task_list_header_title_no_date">No date</string>
+    <string name="placeholder_no_tasks">No tasks</string>
+    <string name="snackbar_task_completed_message">Task completed</string>
+    <string name="snackbar_undo_mark_task_completed">Undo</string>
+    <string name="button_add_task">Add task</string>
+    <string name="hint_subject_title">Title</string>
+    <string name="hint_choose_color">Choose color associated with this subject:</string>
+
+    <string name="button_create">Create</string>
+    <string name="button_add">Add</string>
+
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+    <string name="nav_header_desc">Navigation header</string>
+
+    <string name="error_required_field">This field is required</string>
+    <string name="error_long_title">Title is too long</string>
+    <string name="error_subject_already_exists">This subject already exists</string>
+    <string name="error_teacher_already_exists">Teacher with that name already exists.</string>
+    <string name="back">Back</string>
+    <string name="title_activity_login">Sign in</string>
+    <string name="prompt_email">Email</string>
+    <string name="prompt_password">Password</string>
+    <string name="action_sign_in">Sign in or register</string>
+    <string name="action_sign_in_short">Sign in</string>
+    <string name="welcome">"Welcome"</string>
+    <string name="invalid_username">Not a valid username</string>
+    <string name="invalid_password">Password must be >3 characters</string>
+    <string name="login_failed">"Login failed"</string>
+    <string name="prompt_username">Username</string>
 </resources>
