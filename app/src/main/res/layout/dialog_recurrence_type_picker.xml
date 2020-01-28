@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:paddingTop="8dp">
+
+    <LinearLayout
+        android:id="@+id/optionNever"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:clickable="true"
+        android:focusable="true"
+        android:foreground="?attr/selectableItemBackground"
+        android:orientation="horizontal"
+        android:paddingBottom="@dimen/cardview_padding_vertical"
+        android:paddingEnd="?dialogPreferredPadding"
+        android:paddingStart="?dialogPreferredPadding"
+        android:paddingTop="@dimen/cardview_padding_vertical">
+
+        <ImageView
+            android:id="@+id/ivSelectedIndicatorNever"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            app:srcCompat="@drawable/ic_check_black_24dp"
+            android:tint="@color/secondary" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:gravity="center_vertical"
+            android:text="@string/recurrence_never"
+            android:textAppearance="@android:style/TextAppearance.DeviceDefault.Widget.DropDownItem" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/optionRepeat"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:clickable="true"
+        android:focusable="true"
+        android:foreground="?attr/selectableItemBackground"
+        android:orientation="horizontal"
+        android:paddingBottom="@dimen/cardview_padding_vertical"
+        android:paddingEnd="?dialogPreferredPadding"
+        android:paddingStart="?dialogPreferredPadding"
+        android:paddingTop="@dimen/cardview_padding_vertical">
+
+        <ImageView
+            android:id="@+id/ivSelectedIndicatorRepeat"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            app:srcCompat="@drawable/ic_check_black_24dp"
+            android:tint="@color/secondary" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:gravity="center_vertical"
+            android:text="@string/every"
+            android:textAppearance="@android:style/TextAppearance.DeviceDefault.Widget.DropDownItem" />
+
+        <EditText
+            android:id="@+id/etQuantity"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:gravity="center"
+            android:inputType="number"
+            android:maxLength="6"
+            android:minWidth="32dp"
+            tools:text="2" />
+
+        <Spinner
+            android:id="@+id/sRecurrenceTypes"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp" />
+
+    </LinearLayout>
+
+</LinearLayout>
