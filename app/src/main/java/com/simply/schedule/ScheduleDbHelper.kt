@@ -119,196 +119,185 @@ class ScheduleDbHelper(private val context: Context) :
 
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {}
 
-    @Throws(SQLException::class)
-    fun addSubject(title: String, colorId: Long): Long {
-        val db = writableDatabase
-        val cv = ContentValues().apply {
-            put("title", title)
-            put("colorId", colorId)
-        }
-        val id = db.insertOrThrow("subjects", null, cv)
-        db.close()
-        return id
-    }
+//    @Throws(SQLException::class)
+//    fun addSubject(title: String, colorId: Long): Long {
+//        val db = writableDatabase
+//        val cv = ContentValues().apply {
+//            put("title", title)
+//            put("colorId", colorId)
+//        }
+//        val id = db.insertOrThrow("subjects", null, cv)
+//        db.close()
+//        return id
+//    }
 
-    fun addClassType(title: String): Long {
-        val db = writableDatabase
-        val cv = ContentValues()
-        cv.put("title", title)
-        val id = db.insertOrThrow("classTypes", null, cv)
-        db.close()
-        return id
-    }
+//    fun addClassType(title: String): Long {
+//        val db = writableDatabase
+//        val cv = ContentValues()
+//        cv.put("title", title)
+//        val id = db.insertOrThrow("classTypes", null, cv)
+//        db.close()
+//        return id
+//    }
+//
+//    fun getSubject(id: Long): Cursor = readableDatabase.rawQuery(
+//        """
+//        SELECT subjects._id, title, colors.color FROM subjects
+//        INNER JOIN colors ON subjects.colorId = colors._id
+//        WHERE subjects._id = ? LIMIT 1""", arrayOf(id.toString())
+//    )
 
-    fun addTeacher(name: String, phone: String?, email: String?): Long {
-        val db = writableDatabase
-        val cv = ContentValues().apply {
-            put("name", name)
-            put("phone", phone)
-            put("email", email)
-        }
-        val teacherId = db.insertOrThrow("teachers", null, cv)
-        db.close()
-        return teacherId
-    }
+//    fun addTeacher(name: String, phone: String?, email: String?): Long {
+//        val db = writableDatabase
+//        val cv = ContentValues().apply {
+//            put("name", name)
+//            put("phone", phone)
+//            put("email", email)
+//        }
+//        val teacherId = db.insertOrThrow("teachers", null, cv)
+//        db.close()
+//        return teacherId
+//    }
 
-    fun getSubject(id: Long): Cursor = readableDatabase.rawQuery(
-        """
-        SELECT subjects._id, title, colors.color FROM subjects
-        INNER JOIN colors ON subjects.colorId = colors._id
-        WHERE subjects._id = ? LIMIT 1""", arrayOf(id.toString())
-    )
+//    fun getTeacher(id: Long): Cursor = readableDatabase.rawQuery(
+//        """
+//        SELECT * FROM teachers
+//        WHERE _id = ? LIMIT 1""", arrayOf(id.toString())
+//    )
+//
+//    fun getClassType(id: Long): Cursor = readableDatabase.rawQuery(
+//        """
+//        SELECT * FROM classTypes
+//        WHERE _id = ? LIMIT 1""", arrayOf(id.toString())
+//    )
 
-    fun getTeacher(id: Long): Cursor = readableDatabase.rawQuery(
-        """
-        SELECT * FROM teachers
-        WHERE _id = ? LIMIT 1""", arrayOf(id.toString())
-    )
+//    fun removeTeacher(id: Long) =
+//        writableDatabase.delete("teachers", "_id = ?", arrayOf(id.toString()))
 
-    fun getClassType(id: Long): Cursor = readableDatabase.rawQuery(
-        """
-        SELECT * FROM classTypes
-        WHERE _id = ? LIMIT 1""", arrayOf(id.toString())
-    )
+//    fun removeClass(id: Long) =
+//        writableDatabase.delete("classes", "_id = ?", arrayOf(id.toString()))
 
-    fun removeTeacher(id: Long) =
-        writableDatabase.delete("teachers", "_id = ?", arrayOf(id.toString()))
+//    fun fetchClasses(date: LocalDate): Cursor {
+//        val dateDOW = date.dayOfWeek
+//
+//        val db = readableDatabase
+//        val args = arrayOf(format(date), "%$dateDOW%")
+//        val cursor = db.rawQuery(
+//            """
+//            SELECT classId, dateStart, period FROM times
+//            WHERE dateStart <= ?
+//            AND (dateEnd >= ?1 OR dateEnd IS NULL)
+//            AND (daysOfWeek LIKE ?2 OR daysOfWeek IS NULL)""", args
+//        )
+//
+//        val classIdColumn = cursor.getColumnIndex("classId")
+//        val dateStartColumn = cursor.getColumnIndex("dateStart")
+//        val periodColumn = cursor.getColumnIndex("period")
+//
+//        val classIds = arrayListOf<Long>()
+//        var startDate: LocalDate
+//        var recurrence: Period?
+//        while (cursor.moveToNext()) {
+//            startDate = LocalDate.parse(cursor.getString(dateStartColumn))
+//            recurrence = if (!cursor.isNull(periodColumn)) {
+//                Period.parse(cursor.getString(periodColumn))
+//            } else null
+//
+//            if (isOccurrence(date, startDate, recurrence)) {
+//                classIds.add(cursor.getLong(classIdColumn))
+//            }
+//        }
+//        cursor.close()
+//
+//        return db.rawQuery(
+//            """
+//            SELECT classes._id,
+//            subjects.title AS subject,
+//            colors.color AS color,
+//            classTypes.title AS type,
+//            times.timeStart, timeEnd,
+//            location,
+//            teachers.name AS teacher FROM classes
+//            INNER JOIN subjects ON classes.subjectId = subjects._id
+//            INNER JOIN colors ON subjects.colorId = colors._id
+//            INNER JOIN times ON times.classId = classes._id
+//            INNER JOIN classTypes ON classes.typeId = classTypes._id
+//            LEFT JOIN teachers ON classes.teacherId = teachers._id
+//            WHERE classes._id IN (${format(classIds)})
+//            ORDER BY timeStart ASC""", null
+//        )
+//    }
 
-    fun removeClass(id: Long) =
-        writableDatabase.delete("classes", "_id = ?", arrayOf(id.toString()))
+//    fun fetchSubjects(): Cursor = readableDatabase.rawQuery(
+//        """
+//        SELECT subjects._id, title, colors.color FROM subjects
+//        INNER JOIN colors ON subjects.colorId = colors._id""", null
+//    )
 
-    fun fetchClasses(date: LocalDate): Cursor {
-        val dateDOW = date.dayOfWeek
+//    fun fetchClassTypes(): Cursor = readableDatabase.rawQuery(
+//        "SELECT * FROM classTypes", null
+//    )
 
-        val db = readableDatabase
-        val args = arrayOf(format(date), "%$dateDOW%")
-        val cursor = db.rawQuery(
-            """
-            SELECT classId, dateStart, period FROM times
-            WHERE dateStart <= ?
-            AND (dateEnd >= ?1 OR dateEnd IS NULL)
-            AND (daysOfWeek LIKE ?2 OR daysOfWeek IS NULL)""", args
-        )
+//    fun fetchTeachers(): Cursor = readableDatabase.rawQuery(
+//        "SELECT * FROM teachers ORDER BY name", null
+//    )
 
-        val classIdColumn = cursor.getColumnIndex("classId")
-        val dateStartColumn = cursor.getColumnIndex("dateStart")
-        val periodColumn = cursor.getColumnIndex("period")
+//    private fun isOccurrence(date: LocalDate, start: LocalDate, recurrence: Period?): Boolean =
+//        date.isEqual(
+//            if (recurrence == null) start
+//            else this.getClosestFutureOccurrence(date, start, recurrence)
+//        )
+//
+//    private fun getClosestFutureOccurrence(
+//        date: LocalDate,
+//        start: LocalDate,
+//        recurrence: Period
+//    ): LocalDate {
+//        var shiftedStart = start
+//        if (recurrence.weeks != 0) {
+//            val dateDOW = date.dayOfWeek
+//            val startDOW = shiftedStart.dayOfWeek
+//            // set startFrom's dow to be equal to date's dow, to add recurrence period correctly
+//            if (startDOW < dateDOW) {
+//                shiftedStart = shiftedStart.plusDays(dateDOW - startDOW)
+//            } else if (startDOW > dateDOW) {
+//                shiftedStart = shiftedStart.minusDays(startDOW - dateDOW)
+//            }
+//        }
+//
+//        var occurrence = shiftedStart
+//
+//        val distance = Days.daysBetween(shiftedStart, date).days
+//        if (distance > 0) {
+//            val factor = distance / Days.standardDaysIn(recurrence).days
+//            if (factor > 0) {
+//                val quickAdvance = recurrence.multipliedBy(factor)
+//                occurrence = shiftedStart.plus(quickAdvance)
+//            }
+//        }
+//
+//        while (occurrence.isBefore(date)) {
+//            occurrence = occurrence.plus(recurrence)
+//        }
+//
+//        return occurrence
+//    }
 
-        val classIds = arrayListOf<Long>()
-        var startDate: LocalDate
-        var recurrence: Period?
-        while (cursor.moveToNext()) {
-            startDate = LocalDate.parse(cursor.getString(dateStartColumn))
-            recurrence = if (!cursor.isNull(periodColumn)) {
-                Period.parse(cursor.getString(periodColumn))
-            } else null
-
-            if (isOccurrence(date, startDate, recurrence)) {
-                classIds.add(cursor.getLong(classIdColumn))
-            }
-        }
-        cursor.close()
-
-        return db.rawQuery(
-            """
-            SELECT classes._id,
-            subjects.title AS subject,
-            colors.color AS color,
-            classTypes.title AS type,
-            times.timeStart, timeEnd,
-            location,
-            teachers.name AS teacher FROM classes
-            INNER JOIN subjects ON classes.subjectId = subjects._id
-            INNER JOIN colors ON subjects.colorId = colors._id
-            INNER JOIN times ON times.classId = classes._id
-            INNER JOIN classTypes ON classes.typeId = classTypes._id
-            LEFT JOIN teachers ON classes.teacherId = teachers._id
-            WHERE classes._id IN (${format(classIds)})
-            ORDER BY timeStart ASC""", null
-        )
-    }
-
-    fun fetchSubjects(): Cursor = readableDatabase.rawQuery(
-        """
-        SELECT subjects._id, title, colors.color FROM subjects
-        INNER JOIN colors ON subjects.colorId = colors._id""", null
-    )
-
-    fun fetchClassTypes(): Cursor = readableDatabase.rawQuery(
-        "SELECT * FROM classTypes", null
-    )
-
-    fun fetchTeachers(): Cursor = readableDatabase.rawQuery(
-        "SELECT * FROM teachers ORDER BY name", null
-    )
-
-    fun fetchTeachers(query: String?): Cursor {
-        if (query == null) {
-            return fetchTeachers()
-        }
-        val db = readableDatabase
-        val regex = "'%' || ?1 || '%'"
-        val selection = "name LIKE $regex OR phone LIKE $regex OR email LIKE $regex"
-        val args = arrayOf(query)
-        return db.query("teachers", null, selection, args, null, null, "name")
-    }
-
-    private fun isOccurrence(date: LocalDate, start: LocalDate, recurrence: Period?): Boolean =
-        date.isEqual(
-            if (recurrence == null) start
-            else this.getClosestFutureOccurrence(date, start, recurrence)
-        )
-
-    private fun getClosestFutureOccurrence(
-        date: LocalDate,
-        start: LocalDate,
-        recurrence: Period
-    ): LocalDate {
-        var shiftedStart = start
-        if (recurrence.weeks != 0) {
-            val dateDOW = date.dayOfWeek
-            val startDOW = shiftedStart.dayOfWeek
-            // set startFrom's dow to be equal to date's dow, to add recurrence period correctly
-            if (startDOW < dateDOW) {
-                shiftedStart = shiftedStart.plusDays(dateDOW - startDOW)
-            } else if (startDOW > dateDOW) {
-                shiftedStart = shiftedStart.minusDays(startDOW - dateDOW)
-            }
-        }
-
-        var occurrence = shiftedStart
-
-        val distance = Days.daysBetween(shiftedStart, date).days
-        if (distance > 0) {
-            val factor = distance / Days.standardDaysIn(recurrence).days
-            if (factor > 0) {
-                val quickAdvance = recurrence.multipliedBy(factor)
-                occurrence = shiftedStart.plus(quickAdvance)
-            }
-        }
-
-        while (occurrence.isBefore(date)) {
-            occurrence = occurrence.plus(recurrence)
-        }
-
-        return occurrence
-    }
-
-    fun fetchClass(id: Long?): Cursor = readableDatabase.rawQuery(
-        """
-        SELECT classes._id,
-        subjects.title AS subject,
-        classTypes.title AS type,
-        times.timeStart, timeEnd,
-        location,
-        teachers.name AS teacher FROM classes
-        INNER JOIN subjects ON classes.subjectId = subjects._id
-        AND classes._id = ?
-        INNER JOIN times ON times.classId = classes._id
-        INNER JOIN classTypes ON classes.typeId = classTypes._id
-        LEFT JOIN teachers ON classes.teacherId = teachers._id
-        ORDER BY timeStart""", arrayOf(id.toString())
-    )
+//    fun fetchClass(id: Long?): Cursor = readableDatabase.rawQuery(
+//        """
+//        SELECT classes._id,
+//        subjects.title AS subject,
+//        classTypes.title AS type,
+//        times.timeStart, timeEnd,
+//        location,
+//        teachers.name AS teacher FROM classes
+//        INNER JOIN subjects ON classes.subjectId = subjects._id
+//        AND classes._id = ?
+//        INNER JOIN times ON times.classId = classes._id
+//        INNER JOIN classTypes ON classes.typeId = classTypes._id
+//        LEFT JOIN teachers ON classes.teacherId = teachers._id
+//        ORDER BY timeStart""", arrayOf(id.toString())
+//    )
 
     fun fetchTasks(): Cursor = readableDatabase.rawQuery(
         """
@@ -325,10 +314,10 @@ class ScheduleDbHelper(private val context: Context) :
         ORDER BY dueDate IS NOT NULL DESC, dueDate ASC, priority DESC""", null
     )
 
-    fun fetchTasks(classId: Long?): Cursor = readableDatabase.query(
-        "tasks", null, "classId = ? AND isCompleted = 'N'",
-        arrayOf(classId.toString()), null, null, null
-    )
+//    fun fetchTasks(classId: Long?): Cursor = readableDatabase.query(
+//        "tasks", null, "classId = ? AND isCompleted = 'N'",
+//        arrayOf(classId.toString()), null, null, null
+//    )
 
     fun fetchColors(): Cursor = readableDatabase.rawQuery("SELECT * FROM colors", null)
 

@@ -17,6 +17,7 @@ import android.view.animation.AccelerateDecelerateInterpolator
 import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.PopupWindow
+import androidx.appcompat.app.AlertDialog
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
@@ -24,9 +25,15 @@ import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.simply.schedule.KeyboardUtils
 import com.simply.schedule.R
 import com.simply.schedule.ScheduleDbHelper
+import com.simply.schedule.network.ScheduleApi
+import com.simply.schedule.network.Task
 import com.simply.schedule.trimToNull
 import org.joda.time.LocalDate
 import org.joda.time.LocalDateTime
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
+import retrofit2.Retrofit
 
 class TaskCreationBottomSheetFragment : Fragment() {
 
@@ -193,7 +200,7 @@ class TaskCreationBottomSheetFragment : Fragment() {
 
         mBottomSheetBehavior = BottomSheetBehavior.from(mBottomSheet)
         mBottomSheetBehavior.setBottomSheetCallback(object :
-                                                        BottomSheetBehavior.BottomSheetCallback() {
+            BottomSheetBehavior.BottomSheetCallback() {
 
             val margin = (mTaskDescriptionField.layoutParams as ViewGroup.MarginLayoutParams).let {
                 (it.topMargin + it.bottomMargin).toFloat()
@@ -276,21 +283,29 @@ class TaskCreationBottomSheetFragment : Fragment() {
             return
         }
 
-        val cv = ContentValues().apply {
-            put("title", title)
-            put("description", mTaskDescriptionField.text.toString().trimToNull())
-            put("priority", mTaskPriority)
-            put("createdAt", ScheduleDbHelper.format(LocalDateTime.now()))
-            put("classId", mTaskClassId)
-            put("dueDate", mTaskDate?.run {
+        val task = Task(
+            title=title,
+            description= mTaskDescriptionField.text.toString().trimToNull(),
+            priority= mTaskPriority,
+            dueDate=mTaskDate?.run {
                 ScheduleDbHelper.format(this)
-            })
-        }
+            }
+        )
 
-        val id = mDatabaseHelper.writableDatabase.insert("tasks", null, cv)
-        hide()
-        clearForm()
-        mListener?.onTaskCreated(id)
+        ScheduleApi.retrofitService.createTask(task).enqueue(object : Callback<Task> {
+            override fun onFailure(call: Call<Task>, t: Throwable) {
+                AlertDialog.Builder(context!!)
+                    .setMessage(t.message)
+                    .setPositiveButton(R.string.back) { dialog, _ -> dialog.cancel() }
+            }
+
+            override fun onResponse(call: Call<Task>, response: Response<Task>) {
+                hide()
+                clearForm()
+                mListener?.onTaskCreated(response.body()!!)
+            }
+        })
+
     }
 
     private fun indicateEmpty(view: EditText) {
@@ -363,7 +378,7 @@ class TaskCreationBottomSheetFragment : Fragment() {
     interface OnFragmentInteractionListener {
         fun onBottomSheetStateChanged(state: Int)
 
-        fun onTaskCreated(taskId: Long)
+        fun onTaskCreated(task: Task)
     }
 
     companion object {

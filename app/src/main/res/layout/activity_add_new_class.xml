@@ -15,9 +15,9 @@
         <androidx.cardview.widget.CardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginEnd="@dimen/activity_horizontal_margin"
             android:layout_marginStart="@dimen/activity_horizontal_margin"
             android:layout_marginTop="@dimen/activity_vertical_margin"
+            android:layout_marginEnd="@dimen/activity_horizontal_margin"
             android:clickable="true"
             android:focusable="true"
             android:foreground="?attr/selectableItemBackground">
@@ -31,10 +31,10 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:onClick="chooseSubject"
-                    android:paddingBottom="@dimen/cardview_padding_vertical"
-                    android:paddingEnd="@dimen/cardview_padding_horizontal"
                     android:paddingStart="@dimen/cardview_padding_horizontal"
-                    android:paddingTop="@dimen/cardview_padding_vertical">
+                    android:paddingTop="@dimen/cardview_padding_vertical"
+                    android:paddingEnd="@dimen/cardview_padding_horizontal"
+                    android:paddingBottom="@dimen/cardview_padding_vertical">
 
                     <ImageView
                         android:id="@+id/ivSubjectIcon"
@@ -63,10 +63,10 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:onClick="showChooseClassTypeDialog"
-                    android:paddingBottom="@dimen/cardview_padding_vertical"
-                    android:paddingEnd="@dimen/cardview_padding_horizontal"
                     android:paddingStart="@dimen/cardview_padding_horizontal"
-                    android:paddingTop="@dimen/cardview_padding_vertical">
+                    android:paddingTop="@dimen/cardview_padding_vertical"
+                    android:paddingEnd="@dimen/cardview_padding_horizontal"
+                    android:paddingBottom="@dimen/cardview_padding_vertical">
 
                     <ImageView
                         android:id="@+id/ivClassTypeIcon"
@@ -82,6 +82,7 @@
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="16dp"
+                        android:text="@string/dialog_choose_class_type"
                         android:textAppearance="@style/TextAppearance.AppCompat.Medium"
                         android:textColor="@color/text_dark"
                         app:layout_constraintStart_toEndOf="@id/ivClassTypeIcon"
@@ -95,9 +96,9 @@
         <androidx.cardview.widget.CardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginEnd="@dimen/activity_horizontal_margin"
             android:layout_marginStart="@dimen/activity_horizontal_margin"
-            android:layout_marginTop="16dp">
+            android:layout_marginTop="16dp"
+            android:layout_marginEnd="@dimen/activity_horizontal_margin">
 
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
@@ -107,9 +108,9 @@
                     android:id="@+id/ivTimeIcon"
                     android:layout_width="26dp"
                     android:layout_height="26dp"
-                    android:layout_marginBottom="@dimen/cardview_padding_vertical"
                     android:layout_marginStart="@dimen/cardview_padding_horizontal"
                     android:layout_marginTop="@dimen/cardview_padding_vertical"
+                    android:layout_marginBottom="@dimen/cardview_padding_vertical"
                     android:tint="@color/icon_gray"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
@@ -185,9 +186,9 @@
         <androidx.cardview.widget.CardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginEnd="@dimen/activity_horizontal_margin"
             android:layout_marginStart="@dimen/activity_horizontal_margin"
-            android:layout_marginTop="16dp">
+            android:layout_marginTop="16dp"
+            android:layout_marginEnd="@dimen/activity_horizontal_margin">
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -201,10 +202,10 @@
                     android:focusable="true"
                     android:foreground="?attr/selectableItemBackground"
                     android:onClick="chooseRecurrenceOption"
-                    android:paddingBottom="@dimen/cardview_padding_vertical"
-                    android:paddingEnd="@dimen/cardview_padding_horizontal"
                     android:paddingStart="@dimen/cardview_padding_horizontal"
-                    android:paddingTop="@dimen/cardview_padding_vertical">
+                    android:paddingTop="@dimen/cardview_padding_vertical"
+                    android:paddingEnd="@dimen/cardview_padding_horizontal"
+                    android:paddingBottom="@dimen/cardview_padding_vertical">
 
                     <ImageView
                         android:id="@+id/ivRecurrenceIcon"
@@ -233,9 +234,9 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:baselineAligned="false"
-                    android:paddingBottom="@dimen/cardview_padding_vertical"
+                    android:paddingStart="@dimen/cardview_padding_horizontal"
                     android:paddingEnd="@dimen/cardview_padding_horizontal"
-                    android:paddingStart="@dimen/cardview_padding_horizontal">
+                    android:paddingBottom="@dimen/cardview_padding_vertical">
 
                     <androidx.constraintlayout.widget.ConstraintLayout
                         android:layout_width="wrap_content"
@@ -245,8 +246,8 @@
                         android:clickable="true"
                         android:focusable="true"
                         android:foreground="?attr/selectableItemBackground"
-                        android:minHeight="@dimen/dow_brick_size"
                         android:minWidth="@dimen/dow_brick_size"
+                        android:minHeight="@dimen/dow_brick_size"
                         android:onClick="toggleDayOfWeek">
 
                         <TextView
@@ -268,8 +269,8 @@
                         android:clickable="true"
                         android:focusable="true"
                         android:foreground="?attr/selectableItemBackground"
-                        android:minHeight="@dimen/dow_brick_size"
                         android:minWidth="@dimen/dow_brick_size"
+                        android:minHeight="@dimen/dow_brick_size"
                         android:onClick="toggleDayOfWeek"
                         app:layout_constraintStart_toStartOf="parent"
                         app:layout_constraintTop_toTopOf="parent">
@@ -293,8 +294,8 @@
                         android:clickable="true"
                         android:focusable="true"
                         android:foreground="?attr/selectableItemBackground"
-                        android:minHeight="@dimen/dow_brick_size"
                         android:minWidth="@dimen/dow_brick_size"
+                        android:minHeight="@dimen/dow_brick_size"
                         android:onClick="toggleDayOfWeek">
 
                         <TextView
@@ -316,8 +317,8 @@
                         android:clickable="true"
                         android:focusable="true"
                         android:foreground="?attr/selectableItemBackground"
-                        android:minHeight="@dimen/dow_brick_size"
                         android:minWidth="@dimen/dow_brick_size"
+                        android:minHeight="@dimen/dow_brick_size"
                         android:onClick="toggleDayOfWeek">
 
                         <TextView
@@ -339,8 +340,8 @@
                         android:clickable="true"
                         android:focusable="true"
                         android:foreground="?attr/selectableItemBackground"
-                        android:minHeight="@dimen/dow_brick_size"
                         android:minWidth="@dimen/dow_brick_size"
+                        android:minHeight="@dimen/dow_brick_size"
                         android:onClick="toggleDayOfWeek">
 
                         <TextView
@@ -362,8 +363,8 @@
                         android:clickable="true"
                         android:focusable="true"
                         android:foreground="?attr/selectableItemBackground"
-                        android:minHeight="@dimen/dow_brick_size"
                         android:minWidth="@dimen/dow_brick_size"
+                        android:minHeight="@dimen/dow_brick_size"
                         android:onClick="toggleDayOfWeek">
 
                         <TextView
@@ -385,8 +386,8 @@
                         android:clickable="true"
                         android:focusable="true"
                         android:foreground="?attr/selectableItemBackground"
-                        android:minHeight="@dimen/dow_brick_size"
                         android:minWidth="@dimen/dow_brick_size"
+                        android:minHeight="@dimen/dow_brick_size"
                         android:onClick="toggleDayOfWeek">
 
                         <TextView
@@ -407,9 +408,9 @@
         <androidx.cardview.widget.CardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginEnd="@dimen/activity_horizontal_margin"
             android:layout_marginStart="@dimen/activity_horizontal_margin"
-            android:layout_marginTop="16dp">
+            android:layout_marginTop="16dp"
+            android:layout_marginEnd="@dimen/activity_horizontal_margin">
 
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
@@ -419,9 +420,9 @@
                     android:id="@+id/ibSetDate"
                     android:layout_width="26dp"
                     android:layout_height="26dp"
-                    android:layout_marginBottom="@dimen/cardview_padding_vertical"
                     android:layout_marginStart="@dimen/cardview_padding_horizontal"
                     android:layout_marginTop="@dimen/cardview_padding_vertical"
+                    android:layout_marginBottom="@dimen/cardview_padding_vertical"
                     android:tint="@color/icon_gray"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
@@ -497,17 +498,17 @@
         <androidx.cardview.widget.CardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginEnd="@dimen/activity_horizontal_margin"
             android:layout_marginStart="@dimen/activity_horizontal_margin"
-            android:layout_marginTop="16dp">
+            android:layout_marginTop="16dp"
+            android:layout_marginEnd="@dimen/activity_horizontal_margin">
 
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:paddingBottom="@dimen/cardview_padding_vertical"
-                android:paddingEnd="@dimen/cardview_padding_horizontal"
                 android:paddingStart="@dimen/cardview_padding_horizontal"
-                android:paddingTop="@dimen/cardview_padding_vertical">
+                android:paddingTop="@dimen/cardview_padding_vertical"
+                android:paddingEnd="@dimen/cardview_padding_horizontal"
+                android:paddingBottom="@dimen/cardview_padding_vertical">
 
                 <ImageView
                     android:id="@+id/ivLocationIcon"
@@ -538,10 +539,10 @@
         <androidx.cardview.widget.CardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="@dimen/activity_vertical_margin"
-            android:layout_marginEnd="@dimen/activity_horizontal_margin"
             android:layout_marginStart="@dimen/activity_horizontal_margin"
             android:layout_marginTop="16dp"
+            android:layout_marginEnd="@dimen/activity_horizontal_margin"
+            android:layout_marginBottom="@dimen/activity_vertical_margin"
             android:clickable="true"
             android:focusable="true"
             android:foreground="?attr/selectableItemBackground"
@@ -550,10 +551,10 @@
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:paddingBottom="@dimen/cardview_padding_vertical"
-                android:paddingEnd="@dimen/cardview_padding_horizontal"
                 android:paddingStart="@dimen/cardview_padding_horizontal"
-                android:paddingTop="@dimen/cardview_padding_vertical">
+                android:paddingTop="@dimen/cardview_padding_vertical"
+                android:paddingEnd="@dimen/cardview_padding_horizontal"
+                android:paddingBottom="@dimen/cardview_padding_vertical">
 
                 <ImageView
                     android:id="@+id/ivTeacherIcon"

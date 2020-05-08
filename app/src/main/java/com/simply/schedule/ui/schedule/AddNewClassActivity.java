@@ -2,12 +2,9 @@ package com.simply.schedule.ui.schedule;
 
 import android.app.DatePickerDialog;
 import android.app.TimePickerDialog;
-import android.content.ContentValues;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.TypedArray;
-import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Typeface;
 import android.os.Bundle;
 import android.text.InputType;
@@ -26,19 +23,32 @@ import com.simply.schedule.ScheduleDbHelper;
 import com.simply.schedule.dialog.CreateSubjectDialog;
 import com.simply.schedule.dialog.RecurrenceDialog;
 import com.simply.schedule.dialog.SubjectsDialogBottomSheet;
+import com.simply.schedule.network.Class;
+import com.simply.schedule.network.ClassType;
+import com.simply.schedule.network.ScheduleApi;
+import com.simply.schedule.network.Subject;
+import com.simply.schedule.network.Teacher;
+import com.simply.schedule.network.Time;
 
 import org.joda.time.DateTimeConstants;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalTime;
 import org.joda.time.Period;
 
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.TreeSet;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.content.ContextCompat;
+
+import okio.Buffer;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class AddNewClassActivity extends AppCompatActivity {
 
@@ -63,9 +73,9 @@ public class AddNewClassActivity extends AppCompatActivity {
     private AppCompatActivity mActivity;
     private boolean mIsFormValid = false;
 
-    private long mSubjectId;
-    private long mClassTypeId;
-    private long mTeacherId;
+    private Subject mSubject;
+    private ClassType mClassType;
+    private Teacher mTeacher;
     private LocalTime mStartTime;
     private LocalTime mEndTime;
     private LocalDate mStartDate;
@@ -106,8 +116,8 @@ public class AddNewClassActivity extends AppCompatActivity {
         mActivity = this;
         mDatabaseHelper = new ScheduleDbHelper(this);
 
-        mSubjectId = INVALID_ID;
-        setClassType(1);
+        mSubject = null;
+        mClassType = null;
         setStartTime(LocalTime.now().minuteOfHour().setCopy(0).millisOfSecond().setCopy(0));
         setEndTime(mStartTime.plus(DEFAULT_CLASS_TIME_DURATION));
         setStartDate(LocalDate.now());
@@ -146,7 +156,7 @@ public class AddNewClassActivity extends AppCompatActivity {
                         setTeacher(teacherId);
                     }
                 } else {
-                    setTeacher(mTeacherId); // check if teacher was deleted
+                    setTeacher(INVALID_ID); // check if teacher was deleted
                 }
         }
     }
@@ -156,8 +166,8 @@ public class AddNewClassActivity extends AppCompatActivity {
         dialog.setAllowCreateNewSubject(true);
         dialog.setListener(new SubjectsDialogBottomSheet.OnSubjectSetListener() {
             @Override
-            public void onSubjectSet(long id) {
-                setSubject(id);
+            public void onSubjectSet(Subject subject) {
+                setSubject(subject);
             }
 
             @Override
@@ -177,8 +187,6 @@ public class AddNewClassActivity extends AppCompatActivity {
     }
 
     public void showChooseClassTypeDialog(View view) {
-        final Cursor cursor = mDatabaseHelper.fetchClassTypes();
-
         AlertDialog.Builder builder = new AlertDialog.Builder(mActivity);
 
         builder.setTitle(R.string.dialog_choose_class_type);
@@ -196,19 +204,32 @@ public class AddNewClassActivity extends AppCompatActivity {
                     }
                 });
 
-        builder.setCursor(cursor, new DialogInterface.OnClickListener() {
+        ScheduleApi.INSTANCE.getRetrofitService().getClassTypes().enqueue(new Callback<List<ClassType>>() {
             @Override
-            public void onClick(DialogInterface dialog, int which) {
-                if (cursor.moveToPosition(which)) {
-                    long id = cursor.getLong(cursor.getColumnIndex("_id"));
-                    String title = cursor.getString(cursor.getColumnIndex("title"));
-                    setClassType(id, title);
+            public void onResponse(Call<List<ClassType>> call, Response<List<ClassType>> response) {
+                final List<ClassType> classTypes = response.body();
+                ArrayList<String> classTypesTitles = new ArrayList<String>();
+                for (ClassType classType : classTypes) {
+                    classTypesTitles.add(classType.getTitle());
                 }
-                cursor.moveToFirst();
+                String[] objects = classTypesTitles.toArray(new String[classTypes.size()]);
+                builder.setItems(objects, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        setClassType(classTypes.get(which));
+                    }
+                });
+                builder.show();
             }
-        }, "title");
 
-        builder.show();
+            @Override
+            public void onFailure(Call<List<ClassType>> call, Throwable t) {
+                new AlertDialog.Builder(view.getContext())
+                        .setMessage(t.getMessage())
+                        .setPositiveButton(R.string.back, (dialog, which1) -> dialog.cancel())
+                        .show();
+            }
+        });
     }
 
     private void showCreateClassTypeDialog(View view) {
@@ -227,8 +248,22 @@ public class AddNewClassActivity extends AppCompatActivity {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 String title = input.getText().toString();
-                long id = mDatabaseHelper.addClassType(title);
-                setClassType(id, title);
+                ClassType classType = new ClassType(null, title, null, null);
+                ScheduleApi.INSTANCE.getRetrofitService().createClassType(classType).enqueue(new Callback<ClassType>() {
+                    @Override
+                    public void onResponse(Call<ClassType> call, Response<ClassType> response) {
+                        ClassType classType = response.body();
+                        setClassType(classType);
+                    }
+
+                    @Override
+                    public void onFailure(Call<ClassType> call, Throwable t) {
+                        new AlertDialog.Builder(getBaseContext())
+                                .setMessage(t.getMessage())
+                                .setPositiveButton(R.string.back, (dialog1, which1) -> dialog.cancel())
+                                .create().show();
+                    }
+                });
             }
         });
 
@@ -382,42 +417,89 @@ public class AddNewClassActivity extends AppCompatActivity {
         }
 
         String location = mLocationField.getText().toString().trim();
-
-        SQLiteDatabase db = mDatabaseHelper.getWritableDatabase();
-        ContentValues cv = new ContentValues();
-        cv.put("subjectId", mSubjectId);
-        cv.put("typeId", mClassTypeId);
-        if (mTeacherId != INVALID_ID) {
-            cv.put("teacherId", mTeacherId);
-        }
-        if (!location.isEmpty()) {
-            cv.put("location", location);
+        if (location.isEmpty()) {
+            location = null;
         }
 
-        long classId = db.insert("classes", null, cv);
+        Class class_ = new Class(null, mSubject, mClassType, mTeacher, location, null, null);
 
-        cv.clear();
-        cv.put("classId", classId);
-        cv.put("dateStart", ScheduleDbHelper.Companion.format(mStartDate));
-        cv.put("timeStart", ScheduleDbHelper.Companion.format(mStartTime));
-        cv.put("timeEnd", ScheduleDbHelper.Companion.format(mEndTime));
+        ScheduleApi.INSTANCE.getRetrofitService().createClass(class_).enqueue(new Callback<Class>() {
+            @Override
+            public void onResponse(Call<Class> call, Response<Class> response) {
+                Class class_ = response.body();
+                if (class_ == null) {
+                    try {
+                        new AlertDialog.Builder(mLocationField.getContext())
+                                .setMessage(response.errorBody().string())
+                                .setPositiveButton(R.string.back, (dialog, which1) -> dialog.cancel())
+                                .show();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    return;
+                }
+                String dateStart = ScheduleDbHelper.Companion.format(mStartDate);
+                String timeStart = ScheduleDbHelper.Companion.format(mStartTime);
+                String timeEnd = ScheduleDbHelper.Companion.format(mEndTime);
+                String period = null;
+                String dateEnd = null;
+                String daysOfWeek = null;
+                if (mRecurrence != null) {
+                    period = String.valueOf(mRecurrence.getDays());
+                    dateEnd = ScheduleDbHelper.Companion.format(mEndDate);
+                    if (mRecurrence.getWeeks() != 0) {
+                        daysOfWeek = ScheduleDbHelper.Companion.format(mDaysOfWeek);
+                    }
+                }
 
-        if (mRecurrence != null) {
-            cv.put("period", mRecurrence.toString());
-            cv.put("dateEnd", ScheduleDbHelper.Companion.format(mEndDate));
-            if (mRecurrence.getWeeks() != 0) {
-                cv.put("daysOfWeek", ScheduleDbHelper.Companion.format(mDaysOfWeek));
+                Time time = new Time(null, class_.getId(), period, daysOfWeek, dateStart, dateEnd, timeStart, timeEnd, null, null);
+
+                ScheduleApi.INSTANCE.getRetrofitService().createTime(time).enqueue(new Callback<Time>() {
+                    @Override
+                    public void onResponse(Call<Time> call, Response<Time> response) {
+                        if (response.isSuccessful()) {
+                            finish();
+                        } else {
+                            try {
+                                Buffer buffer = new Buffer();
+                                call.request().body().writeTo(buffer);
+                                new AlertDialog.Builder(mLocationField.getContext())
+                                        .setMessage(buffer.readUtf8() + response.errorBody().string())
+                                        .setPositiveButton(R.string.back, (dialog, which1) -> dialog.cancel())
+                                        .show();
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(Call<Time> call, Throwable t) {
+                        new AlertDialog.Builder(mLocationField.getContext())
+                                .setMessage(t.getMessage())
+                                .setPositiveButton(R.string.back, (dialog, which1) -> dialog.cancel())
+                                .show();
+                    }
+                });
             }
-        }
-        db.insert("times", null, cv);
 
-        finish();
+            @Override
+            public void onFailure(Call<Class> call, Throwable t) {
+                new AlertDialog.Builder(mLocationField.getContext())
+                        .setMessage(t.getMessage())
+                        .setPositiveButton(R.string.back, (dialog, which1) -> dialog.cancel())
+                        .show();
+            }
+        });
     }
 
     private void checkFields() {
         boolean error = false;
 
-        if (mSubjectId == INVALID_ID) {
+        if (mClassType == null) {
+            error = true;
+        }
+        if (mSubject == null) {
             error = true;
         }
         if (mStartDate.isAfter(mEndDate)) {
@@ -430,36 +512,38 @@ public class AddNewClassActivity extends AppCompatActivity {
         mIsFormValid = !error;
     }
 
-    public void setSubject(long id) {
-        Cursor subject = mDatabaseHelper.getSubject(id);
-        subject.moveToNext();
-        mSubjectId = id;
-        mSubjectField.setText(subject.getString(subject.getColumnIndex("title")));
-        subject.close();
+    public void setSubject(Subject subject) {
+        mSubject = subject;
+        mSubjectField.setText(subject.getTitle());
     }
 
-    public void setClassType(long id) {
-        Cursor classType = mDatabaseHelper.getClassType(id);
-        classType.moveToNext();
-        setClassType(id, classType.getString(classType.getColumnIndex("title")));
-        classType.close();
-    }
-
-    public void setClassType(long id, String title) {
-        mClassTypeId = id;
-        mClassTypeField.setText(title);
+    public void setClassType(ClassType classType) {
+        mClassType = classType;
+        mClassTypeField.setText(classType.getTitle());
     }
 
     public void setTeacher(long id) {
-        Cursor teacher = mDatabaseHelper.getTeacher(id);
-        if (teacher.moveToNext()) {
-            mTeacherId = id;
-            mTeacherField.setText(teacher.getString(teacher.getColumnIndex("name")));
-        } else {
-            mTeacherId = INVALID_ID;
-            mTeacherField.setText(R.string.dialog_choose_teacher);
-        }
-        teacher.close();
+        ScheduleApi.INSTANCE.getRetrofitService().getTeacher(id).enqueue(new Callback<Teacher>() {
+            @Override
+            public void onResponse(Call<Teacher> call, Response<Teacher> response) {
+                if (response.isSuccessful()) {
+                    Teacher teacher = response.body();
+                    mTeacher = teacher;
+                    mTeacherField.setText(teacher.getName());
+                } else {
+                    mTeacher = null;
+                    mTeacherField.setText(R.string.dialog_choose_teacher);
+                }
+            }
+
+            @Override
+            public void onFailure(Call<Teacher> call, Throwable t) {
+                new AlertDialog.Builder(mActivity)
+                        .setMessage(t.getMessage())
+                        .setPositiveButton(R.string.back, (dialog, which1) -> dialog.cancel())
+                        .show();
+            }
+        });
     }
 
     private void setStartTime(LocalTime time) {

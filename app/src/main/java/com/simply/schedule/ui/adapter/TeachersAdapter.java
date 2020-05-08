@@ -1,8 +1,10 @@
 package com.simply.schedule.ui.adapter;
 
 import android.database.Cursor;
+
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
+
 import android.util.Log;
 import android.view.ContextMenu;
 import android.view.LayoutInflater;
@@ -14,13 +16,16 @@ import android.widget.TextView;
 
 import com.simply.schedule.R;
 import com.simply.schedule.adapter.CursorRecyclerViewAdapter;
+import com.simply.schedule.adapter.ListRecyclerViewAdapter;
+import com.simply.schedule.network.Teacher;
 
 import org.jetbrains.annotations.NotNull;
 
-public class TeachersAdapter extends CursorRecyclerViewAdapter<TeachersAdapter.ViewHolder>
-        implements View.OnCreateContextMenuListener{
+import java.util.List;
 
-    private Cursor mSubjects;
+public class TeachersAdapter extends ListRecyclerViewAdapter<TeachersAdapter.ViewHolder, Teacher>
+        implements View.OnCreateContextMenuListener {
+
     private int mPosition;
     private OnItemClickListener mListener;
 
@@ -28,8 +33,8 @@ public class TeachersAdapter extends CursorRecyclerViewAdapter<TeachersAdapter.V
         void onItemClick(View view, int position);
     }
 
-    public TeachersAdapter(Cursor cursor, OnItemClickListener listener) {
-        super(cursor);
+    public TeachersAdapter(List<Teacher> list, OnItemClickListener listener) {
+        super(list, item -> item.getId());
         mListener = listener;
     }
 
@@ -37,15 +42,11 @@ public class TeachersAdapter extends CursorRecyclerViewAdapter<TeachersAdapter.V
         return mPosition;
     }
 
-    public void setSubjects(Cursor subjects) {
-        mSubjects = subjects;
-    }
-
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext())
-                                  .inflate(R.layout.row_teacher, parent, false);
+                .inflate(R.layout.row_teacher, parent, false);
         final ViewHolder holder = new ViewHolder(view);
 
         holder.itemView.setOnClickListener(new View.OnClickListener() {
@@ -71,27 +72,8 @@ public class TeachersAdapter extends CursorRecyclerViewAdapter<TeachersAdapter.V
     }
 
     @Override
-    public void onBindViewHolder(@NotNull ViewHolder holder, @NotNull Cursor cursor) {
-        holder.tvName.setText(cursor.getString(cursor.getColumnIndex("name")));
-
-        if (mSubjects == null) {
-            return;
-        }
-        long currentTeacherId = -1;
-        long desiredTeacherId = cursor.getLong(cursor.getColumnIndex("_id"));
-        int teacherIdColumn = mSubjects.getColumnIndex("teacherId");
-        boolean hasNextRow = mSubjects.moveToFirst();
-        while (hasNextRow) {
-            currentTeacherId = mSubjects.getLong(teacherIdColumn);
-            if (currentTeacherId == desiredTeacherId) {
-                break;
-            }
-            hasNextRow = mSubjects.moveToNext();
-        }
-
-        if (currentTeacherId == desiredTeacherId) {
-            holder.tvSubjects.setText(mSubjects.getString(mSubjects.getColumnIndex("subjects")));
-        }
+    public void onBindViewHolder(@NotNull ViewHolder holder, Teacher item) {
+        holder.tvName.setText(item.getName());
     }
 
     @Override
@@ -105,7 +87,7 @@ public class TeachersAdapter extends CursorRecyclerViewAdapter<TeachersAdapter.V
         menu.add(Menu.NONE, 3, Menu.NONE, R.string.context_menu_remove);
     }
 
-    class ViewHolder extends RecyclerView.ViewHolder {
+    static class ViewHolder extends RecyclerView.ViewHolder {
         ImageView ivAvatar;
         TextView tvName;
         TextView tvSubjects;

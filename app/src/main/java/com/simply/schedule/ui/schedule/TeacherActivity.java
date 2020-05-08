@@ -15,7 +15,10 @@ import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+
+import androidx.appcompat.app.AlertDialog;
 import androidx.core.view.MenuItemCompat;
+
 import android.view.ContextMenu;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -29,13 +32,20 @@ import com.google.android.material.appbar.CollapsingToolbarLayout;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.simply.schedule.R;
 import com.simply.schedule.ScheduleDbHelper;
+import com.simply.schedule.network.ScheduleApi;
+import com.simply.schedule.network.Teacher;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
 
-public class TeacherActivity extends AppCompatActivity implements
-        LoaderManager.LoaderCallbacks<Cursor> {
+import java.io.IOException;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+
+public class TeacherActivity extends AppCompatActivity {
 
     public static final String EXTRA_MODE = "mode";
     public static final String EXTRA_SHOULD_RETURN_RESULT = "should return result";
@@ -94,8 +104,6 @@ public class TeacherActivity extends AppCompatActivity implements
         mTeacherId = getIntent().getLongExtra(EXTRA_TEACHER_ID, INVALID_ID);
         mShouldReturnResult = getIntent().getBooleanExtra(EXTRA_SHOULD_RETURN_RESULT, false);
         setMode(getIntent().getIntExtra(EXTRA_MODE, MODE_CREATE));
-
-        getLoaderManager().initLoader(0, null, this);
     }
 
     @Override
@@ -113,56 +121,70 @@ public class TeacherActivity extends AppCompatActivity implements
         if (name.isEmpty()) {
             return;
         }
-        String phone = getPhone().trim();
-        String email = getEmail().trim();
+        Teacher teacher = new Teacher(null, name, getPhone().trim(), getEmail().trim(), null, null);
 
-        if (phone.isEmpty()) {
-            phone = null;
-        }
-        if (email.isEmpty()) {
-            email = null;
-        }
-
-        ScheduleDbHelper helper = new ScheduleDbHelper(this);
+        Call<Teacher> call = null;
         if (mMode == MODE_CREATE) {
-            try {
-                mTeacherId = helper.addTeacher(name, phone, email);
-            } catch (SQLiteConstraintException e) {
-                view.setError(getString(R.string.error_teacher_already_exists));
-                return;
-            }
-            if (mShouldReturnResult) {
-                Intent intent = new Intent();
-                intent.putExtra(EXTRA_TEACHER_ID, mTeacherId);
-                setResult(RESULT_OK, intent);
-                finish();
-            } else {
-                setMode(MODE_VIEW);
-            }
+            call = ScheduleApi.INSTANCE.getRetrofitService().createTeacher(teacher);
         } else if (mMode == MODE_EDIT) {
-            SQLiteDatabase db = helper.getWritableDatabase();
-            ContentValues cv = new ContentValues();
-            cv.put("name", name);
-            cv.put("phone", phone);
-            cv.put("email", email);
-            try {
-                db.update("teachers", cv, "_id = ?",
-                          new String[]{String.valueOf(mTeacherId)});
-            } catch (SQLiteConstraintException e) {
-                view.setError(getString(R.string.error_teacher_already_exists));
-                return;
-            }
-            setMode(MODE_VIEW);
+            call = ScheduleApi.INSTANCE.getRetrofitService().updateTeacher(mTeacherId, teacher);
         }
+        call.enqueue(new Callback<Teacher>() {
+            @Override
+            public void onResponse(Call<Teacher> call, Response<Teacher> response) {
+                if (response.isSuccessful()) {
+                    if (mMode == MODE_CREATE) {
+                        if (mShouldReturnResult) {
+                            Intent intent = new Intent();
+                            intent.putExtra(EXTRA_TEACHER_ID, mTeacherId);
+                            setResult(RESULT_OK, intent);
+                            finish();
+                        } else {
+                            setMode(MODE_VIEW);
+                        }
+                    } else if (mMode == MODE_EDIT) {
+                        setMode(MODE_VIEW);
+                    }
+                } else {
+                    view.setError(getString(R.string.error_teacher_already_exists));
+                    try {
+                        view.setError(response.errorBody().string());
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+
+            @Override
+            public void onFailure(Call<Teacher> call, Throwable t) {
+                new AlertDialog.Builder(view.getContext())
+                        .setMessage(t.getMessage())
+                        .setPositiveButton(R.string.back, (dialog, which1) -> dialog.cancel())
+                        .show();
+            }
+        });
     }
 
     private void setMode(int mode) {
         mMode = mode;
 
         if (mode == MODE_VIEW || mode == MODE_EDIT) {
-            Bundle args = new Bundle();
-            args.putLong(TeacherLoader.ARG_TEACHER_ID, mTeacherId);
-            getLoaderManager().restartLoader(0, args, this).forceLoad();
+            ScheduleApi.INSTANCE.getRetrofitService().getTeacher(mTeacherId).enqueue(new Callback<Teacher>() {
+                @Override
+                public void onResponse(Call<Teacher> call, Response<Teacher> response) {
+                    CollapsingToolbarLayout toolbarLayout = findViewById(R.id.toolbar_layout);
+                    Teacher teacher = response.body();
+                    toolbarLayout.setTitle(teacher.getName());
+                    setName(teacher.getName());
+                    setPhone(teacher.getPhone());
+                    setEmail(teacher.getEmail());
+                }
+
+                @Override
+                public void onFailure(Call<Teacher> call, Throwable t) {
+
+                }
+            });
         }
 
         if (mode == MODE_EDIT || mode == MODE_CREATE) {
@@ -240,30 +262,9 @@ public class TeacherActivity extends AppCompatActivity implements
     }
 
     @Override
-    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-        return new TeacherLoader(getApplicationContext(), args);
-    }
-
-    @Override
-    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
-        data.moveToNext();
-        CollapsingToolbarLayout toolbarLayout = findViewById(R.id.toolbar_layout);
-        String name = data.getString(data.getColumnIndex("name"));
-        toolbarLayout.setTitle(name);
-        setName(name);
-        setPhone(data.getString(data.getColumnIndex("phone")));
-        setEmail(data.getString(data.getColumnIndex("email")));
-        data.close();
-    }
-
-    @Override
-    public void onLoaderReset(Loader<Cursor> loader) {
-    }
-
-    @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         mEditTeacherMenuItem = menu.add(Menu.NONE, OPTIONS_MENU_EDIT,
-                                        Menu.NONE, R.string.options_menu_edit);
+                Menu.NONE, R.string.options_menu_edit);
         mEditTeacherMenuItem.setIcon(R.drawable.ic_edit_white_24dp);
         MenuItemCompat.setShowAsAction(mEditTeacherMenuItem, MenuItem.SHOW_AS_ACTION_IF_ROOM);
 
@@ -320,8 +321,8 @@ public class TeacherActivity extends AppCompatActivity implements
                 Intent phoneIntent = new Intent(Intent.ACTION_CALL);
                 phoneIntent.setData(Uri.parse("tel:" + getPhone()));
                 if (ActivityCompat.checkSelfPermission(getApplicationContext(),
-                                                       Manifest.permission.CALL_PHONE)
-                    != PackageManager.PERMISSION_GRANTED) {
+                        Manifest.permission.CALL_PHONE)
+                        != PackageManager.PERMISSION_GRANTED) {
                     Toast.makeText(this, getString(R.string.prompt_grant_access_to_phone), Toast.LENGTH_SHORT).show();
                     return true;
                 }
@@ -343,48 +344,6 @@ public class TeacherActivity extends AppCompatActivity implements
         intent.putExtra(Intent.EXTRA_SUBJECT, subject);
         if (intent.resolveActivity(getPackageManager()) != null) {
             startActivity(intent);
-        }
-    }
-
-    public static class TeacherLoader extends Loader<Cursor> {
-
-        public static final String ARG_TEACHER_ID = "teacherId";
-
-        private ScheduleDbHelper mDatabaseHelper;
-        private FetchTeacherTask mTask;
-        private long mId;
-
-        public TeacherLoader(Context context, Bundle args) {
-            super(context);
-            if (args != null) {
-                mId = args.getLong(ARG_TEACHER_ID);
-            }
-            mDatabaseHelper = new ScheduleDbHelper(context);
-        }
-
-        @Override
-        protected void onForceLoad() {
-            super.onForceLoad();
-
-            if (mTask != null) {
-                mTask.cancel(true);
-            }
-
-            mTask = new FetchTeacherTask();
-            mTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, mId);
-        }
-
-        private class FetchTeacherTask extends AsyncTask<Long, Void, Cursor> {
-            @Override
-            protected Cursor doInBackground(Long... params) {
-                return mDatabaseHelper.getTeacher(params[0]);
-            }
-
-            @Override
-            protected void onPostExecute(Cursor result) {
-                super.onPostExecute(result);
-                deliverResult(result);
-            }
         }
     }
 }

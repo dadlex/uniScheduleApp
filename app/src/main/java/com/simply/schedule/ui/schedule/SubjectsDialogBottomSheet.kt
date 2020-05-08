@@ -11,6 +11,7 @@ import android.view.*
 import android.view.animation.DecelerateInterpolator
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.widget.Toolbar
 import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.core.view.ViewCompat
@@ -22,6 +23,12 @@ import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.simply.schedule.R
 import com.simply.schedule.ScheduleDbHelper
 import com.simply.schedule.adapter.CursorRecyclerViewAdapter
+import com.simply.schedule.adapter.ListRecyclerViewAdapter
+import com.simply.schedule.network.ScheduleApi
+import com.simply.schedule.network.Subject
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 
 class SubjectsDialogBottomSheet : BottomSheetDialogFragment() {
 
@@ -35,15 +42,26 @@ class SubjectsDialogBottomSheet : BottomSheetDialogFragment() {
     ): View? {
         val view = inflater.inflate(R.layout.dialog_bottom_sheet_subjects, container, false)
 
-        val subjects = ScheduleDbHelper(context!!).fetchSubjects()
-        view.findViewById<RecyclerView>(R.id.rvSubjects).apply {
-            layoutManager = LinearLayoutManager(context, LinearLayoutManager.VERTICAL, false)
-            adapter = SubjectsAdapter(subjects)
-        }
-        if (subjects.count == 0) {
-            view.findViewById<View>(R.id.emptyView).visibility = View.VISIBLE
-        }
+        ScheduleApi.retrofitService.getSubjects().enqueue(object : Callback<List<Subject>> {
+            override fun onFailure(call: Call<List<Subject>>, t: Throwable) {
+                AlertDialog.Builder(context!!)
+                    .setMessage(t.message)
+                    .setPositiveButton(R.string.back) { dialog, _ -> dialog.cancel() }
+                    .create().show()
+            }
 
+            override fun onResponse(call: Call<List<Subject>>, response: Response<List<Subject>>) {
+                val subjects = response.body()!!
+                view.findViewById<RecyclerView>(R.id.rvSubjects).apply {
+                    layoutManager =
+                        LinearLayoutManager(context, LinearLayoutManager.VERTICAL, false)
+                    adapter = SubjectsAdapter(subjects)
+                }
+                if (subjects.count() == 0) {
+                    view.findViewById<View>(R.id.emptyView).visibility = View.VISIBLE
+                }
+            }
+        })
         return view
     }
 
@@ -150,12 +168,15 @@ class SubjectsDialogBottomSheet : BottomSheetDialogFragment() {
     }
 
     interface OnSubjectSetListener {
-        fun onSubjectSet(id: Long)
+        fun onSubjectSet(subject: Subject)
         fun onCreateNewSubject()
     }
 
-    inner class SubjectsAdapter(cursor: Cursor?) :
-        CursorRecyclerViewAdapter<SubjectsAdapter.ViewHolder>(cursor) {
+    inner class SubjectsAdapter(list: List<Subject>?) :
+        ListRecyclerViewAdapter<SubjectsAdapter.ViewHolder, Subject>(list, object : IdGetter<Subject> {
+            override fun getId(item: Subject): Long =
+                item.id!!
+        }) {
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
             val view = LayoutInflater.from(parent.context)
@@ -163,21 +184,17 @@ class SubjectsDialogBottomSheet : BottomSheetDialogFragment() {
             val holder = ViewHolder(view)
 
             holder.itemView.setOnClickListener {
-                listener?.onSubjectSet(getItemId(holder.adapterPosition))
+                listener?.onSubjectSet(list!![holder.adapterPosition])
                 dialog?.dismiss()
             }
 
             return holder
         }
 
-        override fun onBindViewHolder(holder: ViewHolder, cursor: Cursor) {
+        override fun onBindViewHolder(holder: ViewHolder, item: Subject) {
             with(holder) {
-                tvSubject.text = cursor.getString(cursor.getColumnIndex("title"))
-                ivColor.imageTintList = ColorStateList.valueOf(
-                    Color.parseColor(
-                        cursor.getString(cursor.getColumnIndex("color"))
-                    )
-                )
+                tvSubject.text = item.title
+//                ivColor.imageTintList = ColorStateList.valueOf(Color.parseColor(item.color))
             }
         }
 

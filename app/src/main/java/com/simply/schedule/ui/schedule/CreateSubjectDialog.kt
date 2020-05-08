@@ -15,10 +15,16 @@ import android.widget.ImageButton
 import androidx.appcompat.app.AlertDialog
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.textfield.TextInputLayout
 import com.simply.schedule.R
 import com.simply.schedule.ScheduleDbHelper
 import com.simply.schedule.adapter.CursorRecyclerViewAdapter
+import com.simply.schedule.network.ScheduleApi
+import com.simply.schedule.network.Subject
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 
 class CreateSubjectDialog(context: Context) : AlertDialog(context) {
 
@@ -38,8 +44,14 @@ class CreateSubjectDialog(context: Context) : AlertDialog(context) {
 
         setTitle(R.string.dialog_title_add_subject)
         setView(view)
-        setButton(DialogInterface.BUTTON_POSITIVE, context.getString(android.R.string.ok)) {_, _ ->}
-        setButton(DialogInterface.BUTTON_NEGATIVE, context.getString(android.R.string.cancel)) {_, _ ->}
+        setButton(
+            DialogInterface.BUTTON_POSITIVE,
+            context.getString(android.R.string.ok)
+        ) { _, _ -> }
+        setButton(
+            DialogInterface.BUTTON_NEGATIVE,
+            context.getString(android.R.string.cancel)
+        ) { _, _ -> }
         setOnShowListener {
             getButton(DialogInterface.BUTTON_POSITIVE).setOnClickListener {
                 val text = titleLayout.editText!!.text
@@ -48,17 +60,27 @@ class CreateSubjectDialog(context: Context) : AlertDialog(context) {
                 } else if (text.isBlank()) {
                     titleLayout.error = context.getString(R.string.error_required_field)
                 } else {
-                    try {
-                        val colorsAdapter = colorsRecyclerView.adapter as ColorsAdapter
-                        val subjectId = databaseHelper.addSubject(
-                            text.trim().toString(),
-                            colorsAdapter.getItemId(colorsAdapter.checkedPosition)
+                    val colorsAdapter = colorsRecyclerView.adapter as ColorsAdapter
+                    ScheduleApi.retrofitService.createSubject(
+                        Subject(
+                            title = text.trim().toString(),
+                            color = colorsAdapter.getItemId(colorsAdapter.checkedPosition).toString()
                         )
-                        cancel()
-                        listener?.onSubjectCreated(subjectId)
-                    } catch (e: SQLException) {
-                        titleLayout.error = context.getString(R.string.error_subject_already_exists)
-                    }
+                    ).enqueue(object : Callback<Subject> {
+                        override fun onFailure(call: Call<Subject>, t: Throwable) {
+                            Snackbar.make(view, t.message.toString(), Snackbar.LENGTH_LONG).show()
+                        }
+
+                        override fun onResponse(call: Call<Subject>, response: Response<Subject>) {
+                            if (response.isSuccessful) {
+                                val subject = response.body()
+                                cancel()
+                                listener?.onSubjectCreated(subject!!)
+                            } else {
+                                titleLayout.error = response.errorBody()!!.string()
+                            }
+                        }
+                    })
                 }
             }
         }
@@ -107,6 +129,6 @@ class CreateSubjectDialog(context: Context) : AlertDialog(context) {
     }
 
     interface OnSubjectCreatedListener {
-        fun onSubjectCreated(id: Long)
+        fun onSubjectCreated(subject: Subject)
     }
 }

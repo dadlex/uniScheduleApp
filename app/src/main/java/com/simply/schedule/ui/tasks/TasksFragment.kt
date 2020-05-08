@@ -2,19 +2,16 @@ package com.simply.schedule.ui.tasks
 
 import android.content.Context
 import android.database.Cursor
-import android.os.AsyncTask
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.CheckBox
 import android.widget.TextView
-import androidx.annotation.NonNull
 import androidx.annotation.Nullable
+import androidx.appcompat.app.AlertDialog
 import androidx.core.util.Pair
 import androidx.fragment.app.Fragment
-import androidx.loader.app.LoaderManager
-import androidx.loader.content.Loader
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.bottomsheet.BottomSheetBehavior
@@ -22,22 +19,23 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.snackbar.Snackbar
 import com.simply.schedule.R
 import com.simply.schedule.ScheduleDbHelper
-import com.simply.schedule.adapter.TasksAdapter
+import com.simply.schedule.ui.adapter.TasksAdapter
+import com.simply.schedule.network.ScheduleApi
+import com.simply.schedule.network.Task
 import com.simply.schedule.ui.HeaderItemDecoration
 import org.joda.time.LocalDate
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 import java.util.*
 
-typealias LoaderResult = Pair<Cursor, SortedMap<Int, String>>
-
-class TasksFragment : Fragment(), LoaderManager.LoaderCallbacks<LoaderResult>,
-    TaskCreationBottomSheetFragment.OnFragmentInteractionListener {
+class TasksFragment : Fragment(), TaskCreationBottomSheetFragment.OnFragmentInteractionListener {
 
     private lateinit var mTasksRecyclerView: RecyclerView
     private lateinit var mNothingToShow: TextView
     private lateinit var mFab: FloatingActionButton
 
     private lateinit var mTasksAdapter: TasksAdapter
-    private lateinit var mDatabaseHelper: ScheduleDbHelper
 
     val isCreateTaskDialogShown
         get() = taskCreationFragment?.isShown
@@ -64,32 +62,50 @@ class TasksFragment : Fragment(), LoaderManager.LoaderCallbacks<LoaderResult>,
     override fun onActivityCreated(@Nullable savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
 
-        mDatabaseHelper = ScheduleDbHelper(context!!)
-
         mFab = requireActivity().findViewById(R.id.fab)
 
         val listener = object : TasksAdapter.EventListener {
-            override fun onItemClick(view: View, position: Int) {
+            override fun onItemClick(view: View, task: Task) {
             }
 
-            override fun onTaskCheck(view: View, position: Int, checkBox: CheckBox) {
-                val id = mTasksAdapter.getItemId(position)
-
+            override fun onTaskCheck(view: View, task: Task, checkBox: CheckBox) {
                 Snackbar.make(
                     getView()?.parent as View,
                     R.string.snackbar_task_completed_message,
                     Snackbar.LENGTH_LONG
                 ).apply {
                     setAction(R.string.snackbar_undo_mark_task_completed) {
-                        mDatabaseHelper.markTaskNotCompleted(id)
-                        refreshList()
+                        val undoneTask = task.copy(isCompleted = false)
+                        ScheduleApi.retrofitService.updateTask(task.id!!, undoneTask).enqueue(object : Callback<Task> {
+                            override fun onFailure(call: Call<Task>, t: Throwable) {
+                                AlertDialog.Builder(context)
+                                    .setMessage(t.message)
+                                    .setPositiveButton(R.string.back) { dialog, _ -> dialog.cancel() }
+                                    .create().show()
+                            }
+
+                            override fun onResponse(call: Call<Task>, response: Response<Task>) {
+                                refreshList()
+                            }
+                        })
                     }
                     //setActionTextColor(ContextCompat.getColor(requireContext(), R.color.primary_light))
                     show()
                 }
 
-                mDatabaseHelper.markTaskCompleted(id)
-                refreshList()
+                val updatedTask = task.copy(isCompleted = true)
+                ScheduleApi.retrofitService.updateTask(task.id!!, updatedTask).enqueue(object : Callback<Task> {
+                    override fun onFailure(call: Call<Task>, t: Throwable) {
+                        AlertDialog.Builder(context!!)
+                            .setMessage(t.message)
+                            .setPositiveButton(R.string.back) { dialog, _ -> dialog.cancel() }
+                            .create().show()
+                    }
+
+                    override fun onResponse(call: Call<Task>, response: Response<Task>) {
+                        refreshList()
+                    }
+                })
             }
         }
 
@@ -106,8 +122,7 @@ class TasksFragment : Fragment(), LoaderManager.LoaderCallbacks<LoaderResult>,
             addToBackStack(null)
             commit()
         }
-
-        LoaderManager.getInstance(this).initLoader(TASKS_LOADER_ID, null, this).forceLoad()
+        refreshList()
     }
 
     override fun onDetach() {
@@ -116,32 +131,42 @@ class TasksFragment : Fragment(), LoaderManager.LoaderCallbacks<LoaderResult>,
     }
 
     private fun refreshList() {
-        LoaderManager.getInstance(this).restartLoader(TASKS_LOADER_ID, null, this).forceLoad()
-    }
-
-    override fun onCreateLoader(id: Int, args: Bundle?): Loader<LoaderResult> {
-        return when (id) {
-            TASKS_LOADER_ID -> TasksLoader(requireContext(), args)
-            else -> Loader(context!!)
-        }
-    }
-
-    override fun onLoadFinished(@NonNull loader: Loader<LoaderResult>, data: LoaderResult) {
-        if (loader.id == TASKS_LOADER_ID) {
-            mTasksAdapter.setData(data)
-            mTasksAdapter.notifyDataSetChanged()
-            if ((data.first as Cursor).count != 0) {
-                mNothingToShow.visibility = View.GONE
-            } else {
-                mNothingToShow.visibility = View.VISIBLE
+        ScheduleApi.retrofitService.getTasks().enqueue(object : Callback<List<Task>> {
+            override fun onFailure(call: Call<List<Task>>, t: Throwable) {
+                AlertDialog.Builder(context!!)
+                    .setMessage(t.message)
+                    .setPositiveButton(R.string.back) { dialog, _ -> dialog.cancel() }
+                    .create().show()
             }
-        }
-    }
 
-    override fun onLoaderReset(@NonNull loader: Loader<LoaderResult>) {
-        if (loader.id == TASKS_LOADER_ID) {
-            mTasksAdapter.changeCursor(null)
-        }
+            override fun onResponse(call: Call<List<Task>>, response: Response<List<Task>>) {
+                val tasks = response.body()!!.filter { !it.isCompleted }
+                val map = TreeMap<Int, String>()
+                var prevHeader: String? = null
+
+                for ((index, task) in tasks.withIndex()) {
+                    if (task.dueDate == null) {
+                        map[index + map.size] = getString(R.string.task_list_header_title_no_date)
+                        break
+                    }
+
+                    val date = LocalDate.parse(task.dueDate)
+                    val header = ScheduleDbHelper.getDateRelativeToToday(context!!, date)
+
+                    if (header != prevHeader) {
+                        map[index + map.size] = header
+                        prevHeader = header
+                    }
+                }
+
+                mTasksAdapter.setData(tasks, map)
+                if (tasks.count() != 0) {
+                    mNothingToShow.visibility = View.GONE
+                } else {
+                    mNothingToShow.visibility = View.VISIBLE
+                }
+            }
+        })
     }
 
     fun onBackPressed(): Boolean {
@@ -156,7 +181,7 @@ class TasksFragment : Fragment(), LoaderManager.LoaderCallbacks<LoaderResult>,
         }
     }
 
-    override fun onTaskCreated(taskId: Long) {
+    override fun onTaskCreated(task: Task) {
         refreshList()
     }
 
@@ -166,51 +191,6 @@ class TasksFragment : Fragment(), LoaderManager.LoaderCallbacks<LoaderResult>,
 
     fun hideKeyboard() {
         taskCreationFragment?.discardFocus()
-    }
-
-    class TasksLoader(context: Context, args: Bundle?) : Loader<LoaderResult>(context) {
-        private val mDatabaseHelper = ScheduleDbHelper(context)
-        private var mTask: FetchTasksTask? = null
-
-        override fun onForceLoad() {
-            super.onForceLoad()
-            mTask?.cancel(true)
-            mTask = FetchTasksTask().apply {
-                executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR)
-            }
-        }
-
-        private inner class FetchTasksTask : AsyncTask<Long, Void, LoaderResult>() {
-            override fun doInBackground(vararg p0: Long?): LoaderResult {
-                val cursor = mDatabaseHelper.fetchTasks()
-                val map = TreeMap<Int, String>()
-                val dueDateColumn = cursor.getColumnIndex("dueDate")
-                var prevHeader: String? = null
-
-                while (cursor.moveToNext()) {
-                    if (cursor.isNull(dueDateColumn)) {
-                        map[cursor.position + map.size] =
-                            context.getString(R.string.task_list_header_title_no_date)
-                        break // assuming that there's no headers after "no date" header
-                    }
-
-                    val date = LocalDate.parse(cursor.getString(dueDateColumn))
-                    val header = ScheduleDbHelper.getDateRelativeToToday(context, date)
-
-                    if (header != prevHeader) {
-                        map[cursor.position + map.size] = header
-                        prevHeader = header
-                    }
-                }
-                cursor.moveToFirst()
-                return LoaderResult(cursor, map)
-            }
-
-            override fun onPostExecute(result: LoaderResult) {
-                super.onPostExecute(result)
-                deliverResult(result)
-            }
-        }
     }
 
     companion object {

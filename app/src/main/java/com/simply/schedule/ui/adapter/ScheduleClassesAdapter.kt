@@ -2,9 +2,6 @@ package com.simply.schedule.adapter
 
 import android.animation.*
 import android.content.Context
-import android.content.res.ColorStateList
-import android.database.Cursor
-import android.graphics.Color
 import android.view.*
 import android.view.animation.DecelerateInterpolator
 import android.widget.ImageView
@@ -13,9 +10,15 @@ import android.widget.TextView
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.recyclerview.widget.RecyclerView
 import com.simply.schedule.R
+import com.simply.schedule.network.ScheduleClass
+import org.joda.time.LocalTime
 
-class ClassesAdapter(val context: Context, cursor: Cursor?) :
-    CursorRecyclerViewAdapter<ClassesAdapter.ViewHolder>(cursor), View.OnCreateContextMenuListener {
+class ScheduleClassesAdapter(val context: Context, list: List<ScheduleClass>?) :
+    ListRecyclerViewAdapter<ScheduleClassesAdapter.ViewHolder, ScheduleClass>(list, object : IdGetter<ScheduleClass> {
+        override fun getId(item: ScheduleClass): Long {
+            return item.id!!
+        }
+    }), View.OnCreateContextMenuListener {
 
     var position: Int = RecyclerView.NO_POSITION
         private set
@@ -115,39 +118,32 @@ class ClassesAdapter(val context: Context, cursor: Cursor?) :
         }
     }
 
-    override fun onBindViewHolder(holder: ViewHolder, cursor: Cursor) {
-        with(cursor) {
-            holder.tvTimeStart.text = getString(getColumnIndex("timeStart"))
-            holder.tvTimeEnd.text = getString(getColumnIndex("timeEnd"))
-            holder.tvTitle.text = getString(getColumnIndex("subject"))
-            holder.tvType.text = getString(getColumnIndex("type"))
-            holder.colorView.imageTintList = ColorStateList.valueOf(
-                Color.parseColor(
-                    getString(getColumnIndex("color"))
-                )
-            )
+    override fun onBindViewHolder(holder: ViewHolder, item: ScheduleClass) {
+        holder.tvTimeStart.text = LocalTime.parse(item.timeStart).toString("HH:mm")
+        holder.tvTimeEnd.text = LocalTime.parse(item.timeEnd).toString("HH:mm")
+        holder.tvTitle.text = item.subject.title
+        holder.tvType.text = item.type.title
+//        holder.colorView.imageTintList =
+//            ColorStateList.valueOf(Color.parseColor(item.subject.color))
 
-            val teacher = getString(getColumnIndex("teacher"))
-            if (teacher != null) {
-                holder.llTeacherRow.visibility = View.VISIBLE
-                holder.tvTeacher.text = teacher
-            } else {
-                holder.llTeacherRow.visibility = View.GONE
-            }
+        if (item.teacher != null) {
+            holder.llTeacherRow.visibility = View.VISIBLE
+            holder.tvTeacher.text = item.teacher.name
+        } else {
+            holder.llTeacherRow.visibility = View.GONE
+        }
 
-            val location = getString(getColumnIndex("location"))
-            if (location != null) {
-                holder.llLocationRow.visibility = View.VISIBLE
-                holder.tvLocation.text = location
-            } else {
-                holder.llLocationRow.visibility = View.GONE
-            }
+        if (item.location != null) {
+            holder.llLocationRow.visibility = View.VISIBLE
+            holder.tvLocation.text = item.location
+        } else {
+            holder.llLocationRow.visibility = View.GONE
         }
     }
 
     override fun onCreateContextMenu(
         menu: ContextMenu, view: View,
-        menuInfo: ContextMenu.ContextMenuInfo
+        menuInfo: ContextMenu.ContextMenuInfo?
     ) {
         //menu.add(Menu.NONE, R.id.cm_edit, Menu.NONE, R.string.context_menu_edit);
         //menu.add(Menu.NONE, R.id.cm_remove, Menu.NONE, R.string.context_menu_remove) TODO: uncomment when canary bug will be fixed

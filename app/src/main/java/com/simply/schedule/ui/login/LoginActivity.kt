@@ -1,129 +1,145 @@
 package com.simply.schedule.ui.login
 
 import android.app.Activity
-import androidx.lifecycle.Observer
-import androidx.lifecycle.ViewModelProviders
+import android.app.ProgressDialog
+import android.content.Context
+import android.content.Intent
+import android.content.SharedPreferences
 import android.os.Bundle
-import androidx.annotation.StringRes
-import androidx.appcompat.app.AppCompatActivity
-import android.text.Editable
-import android.text.TextWatcher
-import android.view.View
-import android.view.inputmethod.EditorInfo
 import android.widget.Button
 import android.widget.EditText
-import android.widget.ProgressBar
+import android.widget.TextView
 import android.widget.Toast
-
+import androidx.appcompat.app.AlertDialog
+import androidx.appcompat.app.AppCompatActivity
+import com.simply.schedule.KeyboardUtils
 import com.simply.schedule.R
+import com.simply.schedule.network.ScheduleApi
+import com.simply.schedule.network.Subject
+import okhttp3.Credentials
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 
 class LoginActivity : AppCompatActivity() {
+    private lateinit var mUsernameText: EditText
+    private lateinit var mPasswordText: EditText
+    private lateinit var mLoginButton: Button
+    private lateinit var mSignupLink: TextView
 
-    private lateinit var loginViewModel: LoginViewModel
+    private lateinit var mSharedPreferences: SharedPreferences
 
-    override fun onCreate(savedInstanceState: Bundle?) {
+
+    public override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
         setContentView(R.layout.activity_login)
 
-        val username = findViewById<EditText>(R.id.username)
-        val password = findViewById<EditText>(R.id.password)
-        val login = findViewById<Button>(R.id.login)
-        val loading = findViewById<ProgressBar>(R.id.loading)
+        mUsernameText = findViewById(R.id.input_username)
+        mPasswordText = findViewById(R.id.input_password)
+        mLoginButton = findViewById(R.id.btn_login)
+        mSignupLink = findViewById(R.id.link_signup)
 
-        loginViewModel = ViewModelProviders.of(this, LoginViewModelFactory())
-            .get(LoginViewModel::class.java)
+        mSharedPreferences = applicationContext.getSharedPreferences("Schedule", Context.MODE_PRIVATE)
 
-        loginViewModel.loginFormState.observe(this@LoginActivity, Observer {
-            val loginState = it ?: return@Observer
-
-            // disable login button unless both username / password is valid
-            login.isEnabled = loginState.isDataValid
-
-            if (loginState.usernameError != null) {
-                username.error = getString(loginState.usernameError)
-            }
-            if (loginState.passwordError != null) {
-                password.error = getString(loginState.passwordError)
-            }
-        })
-
-        loginViewModel.loginResult.observe(this@LoginActivity, Observer {
-            val loginResult = it ?: return@Observer
-
-            loading.visibility = View.GONE
-            if (loginResult.error != null) {
-                showLoginFailed(loginResult.error)
-            }
-            if (loginResult.success != null) {
-                updateUiWithUser(loginResult.success)
-            }
-            setResult(Activity.RESULT_OK)
-
-            //Complete and destroy login activity once successful
+        mLoginButton.setOnClickListener { login() }
+        mSignupLink.setOnClickListener {
+            // Start the Signup activity
+            val intent = Intent(applicationContext, SignupActivity::class.java)
+            startActivityForResult(intent, REQUEST_SIGNUP)
             finish()
-        })
+            overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
+        }
+    }
 
-        username.afterTextChanged {
-            loginViewModel.loginDataChanged(
-                username.text.toString(),
-                password.text.toString()
-            )
+    fun login() {
+        if (!validate()) {
+            onLoginFailed()
+            return
         }
 
-        password.apply {
-            afterTextChanged {
-                loginViewModel.loginDataChanged(
-                    username.text.toString(),
-                    password.text.toString()
-                )
+        mLoginButton.isEnabled = false
+        val progressDialog = ProgressDialog(this@LoginActivity)
+        progressDialog.isIndeterminate = true
+        progressDialog.setMessage("Authenticating...")
+        progressDialog.show()
+
+        val username = mUsernameText.text.toString()
+        val password = mPasswordText.text.toString()
+
+        ScheduleApi.credentials = Credentials.basic(username, password)
+
+        ScheduleApi.retrofitService.getSubjects().enqueue(object : Callback<List<Subject>> {
+            override fun onFailure(call: Call<List<Subject>>, t: Throwable) {
+                AlertDialog.Builder(mUsernameText.context)
+                    .setMessage(t.message)
+                    .setPositiveButton(R.string.back) { dialog, _ -> dialog.cancel() }
+                    .create().show()
             }
 
-            setOnEditorActionListener { _, actionId, _ ->
-                when (actionId) {
-                    EditorInfo.IME_ACTION_DONE ->
-                        loginViewModel.login(
-                            username.text.toString(),
-                            password.text.toString()
-                        )
+            override fun onResponse(call: Call<List<Subject>>, response: Response<List<Subject>>) {
+                if (response.isSuccessful) {
+                    onLoginSuccess()
+                } else {
+                    onLoginFailed()
                 }
-                false
+                progressDialog.dismiss()
             }
+        })
+    }
 
-            login.setOnClickListener {
-                loading.visibility = View.VISIBLE
-                loginViewModel.login(username.text.toString(), password.text.toString())
+    override fun onActivityResult(
+        requestCode: Int,
+        resultCode: Int,
+        data: Intent?
+    ) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == REQUEST_SIGNUP) {
+            if (resultCode == Activity.RESULT_OK) { // TODO: Implement successful signup logic here
+// By default we just finish the Activity and log them in automatically
+                finish()
             }
         }
     }
 
-    private fun updateUiWithUser(model: LoggedInUserView) {
-        val welcome = getString(R.string.welcome)
-        val displayName = model.displayName
-        // TODO : initiate successful logged in experience
-        Toast.makeText(
-            applicationContext,
-            "$welcome $displayName",
-            Toast.LENGTH_LONG
-        ).show()
+    override fun onBackPressed() { // Disable going back to the MainActivity
+        moveTaskToBack(true)
     }
 
-    private fun showLoginFailed(@StringRes errorString: Int) {
-        Toast.makeText(applicationContext, errorString, Toast.LENGTH_SHORT).show()
+    private fun onLoginSuccess() {
+        mLoginButton.isEnabled = true
+        mSharedPreferences.edit().putString("credentials", ScheduleApi.credentials).apply()
+        finish()
     }
-}
 
-/**
- * Extension function to simplify setting an afterTextChanged action to EditText components.
- */
-fun EditText.afterTextChanged(afterTextChanged: (String) -> Unit) {
-    this.addTextChangedListener(object : TextWatcher {
-        override fun afterTextChanged(editable: Editable?) {
-            afterTextChanged.invoke(editable.toString())
+    private fun onLoginFailed() {
+        Toast.makeText(baseContext, "Login failed", Toast.LENGTH_LONG).show()
+        mLoginButton.isEnabled = true
+    }
+
+    private fun validate(): Boolean {
+        var valid = true
+
+        val username = mUsernameText.text.toString()
+        val password = mPasswordText.text.toString()
+
+        if (username.isEmpty()) {
+            mUsernameText.error = "Invalid username"
+            valid = false
+        } else {
+            mUsernameText.error = null
         }
 
-        override fun beforeTextChanged(s: CharSequence, start: Int, count: Int, after: Int) {}
+        if (password.isEmpty() || password.length < 4 || password.length > 100) {
+            mPasswordText.error = "between 4 and 100 alphanumeric characters"
+            valid = false
+        } else {
+            mPasswordText.error = null
+        }
 
-        override fun onTextChanged(s: CharSequence, start: Int, before: Int, count: Int) {}
-    })
+        return valid
+    }
+
+    companion object {
+        private const val REQUEST_SIGNUP = 0
+    }
 }

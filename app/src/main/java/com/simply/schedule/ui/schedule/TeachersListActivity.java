@@ -1,11 +1,6 @@
 package com.simply.schedule.ui.schedule;
 
-import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
-import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.Menu;
@@ -16,21 +11,25 @@ import android.widget.TextView;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.simply.schedule.R;
-import com.simply.schedule.ScheduleDbHelper;
+import com.simply.schedule.network.ScheduleApi;
+import com.simply.schedule.network.Teacher;
 import com.simply.schedule.ui.MarginItemDecoration;
 import com.simply.schedule.ui.adapter.TeachersAdapter;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SearchView;
-import androidx.loader.app.LoaderManager;
-import androidx.loader.content.Loader;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import java.util.List;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+
 public class TeachersListActivity extends AppCompatActivity
-        implements LoaderManager.LoaderCallbacks<Cursor>,
-        SearchView.OnQueryTextListener, SearchView.OnCloseListener {
+        implements SearchView.OnQueryTextListener, SearchView.OnCloseListener {
 
     public static final String EXTRA_MODE = "mode";
     public static final String EXTRA_TEACHER_ID = "teacherId";
@@ -38,7 +37,6 @@ public class TeachersListActivity extends AppCompatActivity
     public static final int MODE_CHOOSE = 2;
     private static final int REQUEST_CODE_CREATE_TEACHER = 1;
     private int mMode;
-    private ScheduleDbHelper mDatabaseHelper;
 
     private TeachersAdapter mTeachersAdapter;
     private RecyclerView mTeachersList;
@@ -56,7 +54,6 @@ public class TeachersListActivity extends AppCompatActivity
         }
 
         mMode = getIntent().getIntExtra(EXTRA_MODE, MODE_BROWSE);
-        mDatabaseHelper = new ScheduleDbHelper(this);
 
         FloatingActionButton fab = findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
@@ -105,8 +102,7 @@ public class TeachersListActivity extends AppCompatActivity
                 marginHorizontal, marginVertical, marginBetween);
 
         mTeachersList.addItemDecoration(itemDecoration);
-
-        LoaderManager.getInstance(this).initLoader(0, null, this).forceLoad();
+        refreshList();
     }
 
     @Override
@@ -164,23 +160,15 @@ public class TeachersListActivity extends AppCompatActivity
 
                 builder.setTitle(R.string.dialog_title_delete_teacher_confirmation);
                 builder.setMessage(R.string.dialog_message_delete_teacher_confirmation);
-                builder.setPositiveButton(android.R.string.ok,
-                                          new DialogInterface.OnClickListener() {
-                                              @Override
-                                              public void onClick(DialogInterface dialog,
-                                                                  int which) {
-                                                  mDatabaseHelper.removeTeacher(
-                                                          mTeachersAdapter.getItemId(position));
-                                                  refreshList();
-                                              }
-                                          });
+                builder.setPositiveButton(android.R.string.ok, (dialog, which) -> {
+                    ScheduleApi.INSTANCE.getRetrofitService().deleteTeacher(
+                            mTeachersAdapter.getItemId(position));
+                    refreshList();
+                });
 
-                builder.setNegativeButton(android.R.string.cancel,
-                                          new DialogInterface.OnClickListener() {
-                                              public void onClick(DialogInterface dialog, int id) {
-                                                  dialog.dismiss();
-                                              }
-                                          });
+                builder.setNegativeButton(android.R.string.cancel, (dialog, id) -> {
+                    dialog.dismiss();
+                });
 
                 builder.show();
                 break;
@@ -188,24 +176,6 @@ public class TeachersListActivity extends AppCompatActivity
         return super.onContextItemSelected(item);
     }
 
-    @Override
-    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-        return new TeachersLoader(getApplicationContext(), args);
-    }
-
-    @Override
-    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
-        int visibilityMode = data.getCount() == 0 ? TextView.VISIBLE : TextView.GONE;
-        mNothingToShow.setVisibility(visibilityMode);
-
-        mTeachersAdapter.setSubjects(TeachersLoader.subjects);
-        mTeachersAdapter.changeCursor(data);
-    }
-
-    @Override
-    public void onLoaderReset(Loader<Cursor> loader) {
-        mTeachersAdapter.changeCursor(null);
-    }
 
     @Override
     public boolean onQueryTextSubmit(String query) {
@@ -239,6 +209,7 @@ public class TeachersListActivity extends AppCompatActivity
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
         switch (requestCode) {
             case REQUEST_CODE_CREATE_TEACHER:
                 if (resultCode == RESULT_OK) {
@@ -256,75 +227,24 @@ public class TeachersListActivity extends AppCompatActivity
     }
 
     private void refreshList() {
-        String query = mSearchView.getQuery().toString().trim();
-        Bundle bundle = new Bundle();
-        bundle.putString(TeachersLoader.ARGS_SEARCH_QUERY, query);
-        LoaderManager.getInstance(this).restartLoader(0, bundle, this).forceLoad();
-    }
-
-    public static class TeachersLoader extends Loader<Cursor> {
-
-        static String ARGS_SEARCH_QUERY = "Search query";
-        static Cursor subjects;
-
-        private ScheduleDbHelper mDatabaseHelper;
-        private FetchTeachersTask mTask;
-        private String mQuery;
-
-        TeachersLoader(Context context, Bundle args) {
-            super(context);
-            if (args != null) {
-                mQuery = args.getString(ARGS_SEARCH_QUERY);
-                if (mQuery != null && mQuery.isEmpty()) {
-                    mQuery = null;
-                }
-            }
-            mDatabaseHelper = new ScheduleDbHelper(context);
-        }
-
-        @Override
-        protected void onForceLoad() {
-            super.onForceLoad();
-
-            if (mTask != null) {
-                mTask.cancel(true);
-            }
-
-            mTask = new FetchTeachersTask();
-            mTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, mQuery);
-        }
-
-        private class FetchTeachersTask extends AsyncTask<String, Void, Cursor> {
+//        String query = mSearchView.getQuery().toString().trim();
+        ScheduleApi.INSTANCE.getRetrofitService().getTeachers().enqueue(new Callback<List<Teacher>>() {
             @Override
-            protected Cursor doInBackground(String... params) {
-                Cursor cursor = mDatabaseHelper.fetchTeachers(params[0]);
-                if (subjects == null) {
-                    subjects = mapTeachersWithSubjects();
-                }
-                return cursor;
+            public void onResponse(Call<List<Teacher>> call, Response<List<Teacher>> response) {
+                List<Teacher> teachers = response.body();
+                int visibilityMode = teachers.size() == 0 ? TextView.VISIBLE : TextView.GONE;
+                mNothingToShow.setVisibility(visibilityMode);
+                mTeachersAdapter.setList(teachers);
             }
 
             @Override
-            protected void onPostExecute(Cursor result) {
-                super.onPostExecute(result);
-                deliverResult(result);
+            public void onFailure(Call<List<Teacher>> call, Throwable t) {
+                new AlertDialog.Builder(mTeachersList.getContext())
+                        .setMessage(t.getMessage())
+                        .setPositiveButton(R.string.back, (dialog, which1) -> dialog.cancel())
+                        .show();
             }
+        });
 
-            private Cursor mapTeachersWithSubjects() {
-                SQLiteDatabase db = mDatabaseHelper.getReadableDatabase();
-                return db.rawQuery("SELECT"
-                                   + " group_concat(subjectTitle, ', ') AS subjects,"
-                                   + " teacherId FROM ("
-                                   + " SELECT DISTINCT"
-                                   + "   subjects.title AS subjectTitle,"
-                                   + "   classes.teacherId AS teacherId"
-                                   + " FROM classes"
-                                   + " INNER JOIN subjects"
-                                   + "   ON classes.subjectId = subjects._id"
-                                   + " )"
-                                   + " GROUP BY teacherId",
-                                   null);
-            }
-        }
     }
 }

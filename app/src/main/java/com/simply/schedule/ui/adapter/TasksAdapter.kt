@@ -1,8 +1,7 @@
-package com.simply.schedule.adapter
+package com.simply.schedule.ui.adapter
 
 import android.content.Context
 import android.content.res.ColorStateList
-import android.database.Cursor
 import android.graphics.Color
 import android.view.ContextMenu
 import android.view.LayoutInflater
@@ -18,12 +17,18 @@ import androidx.core.widget.CompoundButtonCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.simply.schedule.R
 import com.simply.schedule.ScheduleDbHelper
+import com.simply.schedule.adapter.ListRecyclerViewAdapter
+import com.simply.schedule.network.Task
 import com.simply.schedule.ui.HeaderItemDecoration
 import org.joda.time.LocalDate
 import java.util.*
 
 class TasksAdapter(private val context: Context, val listener: EventListener?) :
-    CursorRecyclerViewAdapter<RecyclerView.ViewHolder>(),
+    ListRecyclerViewAdapter<RecyclerView.ViewHolder, Task>(idGetter = object : IdGetter<Task> {
+        override fun getId(item: Task): Long {
+            return item.id!!
+        }
+    }),
     View.OnCreateContextMenuListener, HeaderItemDecoration.StickyHeaderInterface {
 
     private val rowType = 0
@@ -34,9 +39,9 @@ class TasksAdapter(private val context: Context, val listener: EventListener?) :
 
     private var mHeadersMap: SortedMap<Int, String>? = null // position -> title
 
-    fun setData(data: Pair<Cursor, SortedMap<Int, String>>) {
-        mHeadersMap = data.second
-        changeCursor(data.first)
+    fun setData(list: List<Task>, headersMap : SortedMap<Int, String>) {
+        mHeadersMap = headersMap
+        this.list = list
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
@@ -51,7 +56,7 @@ class TasksAdapter(private val context: Context, val listener: EventListener?) :
                 setOnClickListener {
                     val pos = holder.adapterPosition
                     if (pos != RecyclerView.NO_POSITION) {
-                        listener?.onItemClick(holder.itemView, pos)
+                        listener?.onItemClick(holder.itemView, list!![pos])
                     }
                 }
                 setOnLongClickListener {
@@ -64,7 +69,7 @@ class TasksAdapter(private val context: Context, val listener: EventListener?) :
             holder.cbCompleted.setOnClickListener {
                 val pos = holder.adapterPosition
                 if (pos != RecyclerView.NO_POSITION) {
-                    listener?.onTaskCheck(holder.itemView, pos, holder.cbCompleted)
+                    listener?.onTaskCheck(holder.itemView, list!![pos - getHeaderCountForItem(pos)], holder.cbCompleted)
                 }
             }
         } else {
@@ -77,66 +82,57 @@ class TasksAdapter(private val context: Context, val listener: EventListener?) :
 
     override fun getItemViewType(position: Int) = if (isHeader(position)) headerType else rowType
 
-    override fun onBindViewHolder(holder: RecyclerView.ViewHolder, cursor: Cursor) {}
+    override fun onBindViewHolder(holder: RecyclerView.ViewHolder, item: Task) {}
 
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
-        cursor!!.apply {
-            if (holder is RowViewHolder) {
-                moveToPosition(position - getHeaderCountForItem(position))
+        if (holder is RowViewHolder) {
+            val item = list!![position - getHeaderCountForItem(position)]
+            holder.tvTitle.text = item.title
 
-                holder.tvTitle.text = getString(getColumnIndex("title"))
-
-                holder.tvDueDate.apply {
-                    if (!isNull(getColumnIndex("dueDate"))) {
-                        visibility = View.VISIBLE
-                        text = getString(getColumnIndex("dueDate")).let {
-                            ScheduleDbHelper.getSimpleDate(LocalDate.parse(it))
-                        }
-                    } else {
-                        visibility = View.GONE
-                    }
+            holder.tvDueDate.apply {
+                if (item.dueDate != null) {
+                    visibility = View.VISIBLE
+                    text = ScheduleDbHelper.getSimpleDate(LocalDate.parse(item.dueDate))
+                } else {
+                    visibility = View.GONE
                 }
-
-                holder.ivColorCircle.apply {
-                    val columnIndex = getColumnIndex("subjectColor")
-                    if (!isNull(columnIndex)) {
-                        imageTintList = ColorStateList.valueOf(
-                            Color.parseColor(getString(columnIndex))
-                        )
-                    } else {
-                        visibility = View.GONE
-                    }
-                }
-
-                holder.tvSubject.apply {
-                    val subjectColumnIndex = getColumnIndex("subject")
-                    if (!isNull(subjectColumnIndex)) {
-                        visibility = View.VISIBLE
-                        text = getString(subjectColumnIndex)
-                    } else {
-                        visibility = View.GONE
-                    }
-                }
-
-                holder.cbCompleted.apply {
-                    isChecked = getString(getColumnIndex("isCompleted")) == "Y"
-
-                    val src = when (getInt(getColumnIndex("priority"))) {
-                        1 -> R.color.state_list_low_priority
-                        2 -> R.color.state_list_medium_priority
-                        3 -> R.color.state_list_high_priority
-                        else -> 0
-                    }
-                    if (src != 0) {
-                        val states = ContextCompat.getColorStateList(context, src)
-                        CompoundButtonCompat.setButtonTintList(this, states)
-                    } else {
-                        //CompoundButtonCompat.setButtonTintList(holder.cbCompleted, null);
-                    }
-                }
-            } else if (holder is HeaderViewHolder) {
-                holder.tvTitle.text = mHeadersMap!![position]
             }
+
+            holder.ivColorCircle.apply {
+                if (item.class_ != null) {
+                    imageTintList = ColorStateList.valueOf(Color.parseColor(item.class_.subject.color))
+                } else {
+                    visibility = View.GONE
+                }
+            }
+
+            holder.tvSubject.apply {
+                if (item.class_ != null) {
+                    visibility = View.VISIBLE
+                    text = item.class_.subject.title
+                } else {
+                    visibility = View.GONE
+                }
+            }
+
+            holder.cbCompleted.apply {
+                isChecked = item.isCompleted
+
+                val src = when (item.priority) {
+                    1 -> R.color.state_list_low_priority
+                    2 -> R.color.state_list_medium_priority
+                    3 -> R.color.state_list_high_priority
+                    else -> 0
+                }
+                if (src != 0) {
+                    val states = ContextCompat.getColorStateList(context, src)
+                    CompoundButtonCompat.setButtonTintList(this, states)
+                } else {
+                    //CompoundButtonCompat.setButtonTintList(holder.cbCompleted, null);
+                }
+            }
+        } else if (holder is HeaderViewHolder) {
+            holder.tvTitle.text = mHeadersMap!![position]
         }
     }
 
@@ -188,8 +184,8 @@ class TasksAdapter(private val context: Context, val listener: EventListener?) :
     }
 
     interface EventListener {
-        fun onItemClick(view: View, position: Int)
-        fun onTaskCheck(view: View, position: Int, checkBox: CheckBox)
+        fun onItemClick(view: View, task: Task)
+        fun onTaskCheck(view: View, task: Task, checkBox: CheckBox)
     }
 
     class HeaderViewHolder(v: View) : RecyclerView.ViewHolder(v) {
