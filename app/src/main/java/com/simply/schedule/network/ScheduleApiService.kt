@@ -11,7 +11,7 @@ import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
 import retrofit2.http.*
 
-private const val BASE_URL = "http://161.35.134.199:8000"
+private const val BASE_URL = "http://161.35.134.199"
 
 private val client = OkHttpClient().newBuilder().addInterceptor { chain ->
     val request = chain.request().newBuilder()
