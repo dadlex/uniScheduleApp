@@ -20,6 +20,16 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 
+/*FR22
+1) Authorize
+2) Go to add subject dialog
+3) Go to add teacher dialog
+4) Fill in name, phone, email
+5) Click add
+6) Check that teacher is created
+7) Check that teacher name is the same as filled in
+ */
+
 @LargeTest
 @RunWith(AndroidJUnit4::class)
 class AddTeacherTest {
@@ -279,7 +289,7 @@ class AddTeacherTest {
                 isDisplayed()
             )
         )
-        appCompatEditText3.perform(replaceText("Na"), closeSoftKeyboard())
+        appCompatEditText3.perform(replaceText("Ivan"), closeSoftKeyboard())
 
         val appCompatEditText4 = onView(
             allOf(
@@ -315,7 +325,7 @@ class AddTeacherTest {
                 isDisplayed()
             )
         )
-        appCompatEditText5.perform(replaceText("email"), closeSoftKeyboard())
+        appCompatEditText5.perform(replaceText("email@gmail.com"), closeSoftKeyboard())
 
         val floatingActionButton3 = onView(
             allOf(
@@ -353,7 +363,7 @@ class AddTeacherTest {
 
         val textView = onView(
             allOf(
-                withId(R.id.tvName), withText("Na"),
+                withId(R.id.tvName), withText("Ivan"),
                 childAtPosition(
                     childAtPosition(
                         IsInstanceOf.instanceOf(android.widget.FrameLayout::class.java),
@@ -364,7 +374,7 @@ class AddTeacherTest {
                 isDisplayed()
             )
         )
-        textView.check(matches(withText("Na")))
+        textView.check(matches(withText("Ivan")))
     }
 
     private fun childAtPosition(
