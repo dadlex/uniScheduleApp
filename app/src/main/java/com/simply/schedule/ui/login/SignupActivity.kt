@@ -6,7 +6,6 @@ import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Bundle
-import android.util.Patterns
 import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
@@ -40,7 +39,8 @@ class SignupActivity : AppCompatActivity() {
         mSignupButton = findViewById(R.id.btn_signup)
         mLoginLink = findViewById(R.id.link_login)
 
-        mSharedPreferences = applicationContext.getSharedPreferences("Schedule", Context.MODE_PRIVATE)
+        mSharedPreferences =
+            applicationContext.getSharedPreferences("Schedule", Context.MODE_PRIVATE)
 
         mSignupButton.setOnClickListener { signup() }
         mLoginLink.setOnClickListener {
@@ -73,12 +73,23 @@ class SignupActivity : AppCompatActivity() {
                     .setMessage(t.message)
                     .setPositiveButton(R.string.back) { dialog, _ -> dialog.cancel() }
                     .create().show()
+                onSignupFailed()
             }
 
             override fun onResponse(call: Call<User>, response: Response<User>) {
                 if (response.isSuccessful) {
-                    onSignupSuccess()
+                    AlertDialog.Builder(mUsernameText.context)
+                        .setMessage("Registration successful")
+                        .setPositiveButton(android.R.string.ok) { dialog, _ ->
+                            onSignupSuccess()
+                            dialog.cancel()
+                        }
+                        .create().show()
                 } else {
+                    AlertDialog.Builder(mUsernameText.context)
+                        .setMessage(response.errorBody()!!.string())
+                        .setPositiveButton(R.string.back) { dialog, _ -> dialog.cancel() }
+                        .create().show()
                     onSignupFailed()
                 }
                 progressDialog.dismiss()
@@ -92,6 +103,7 @@ class SignupActivity : AppCompatActivity() {
         val username = mUsernameText.text.toString()
         val password = mPasswordText.text.toString()
         ScheduleApi.credentials = Credentials.basic(username, password)
+        mSharedPreferences.edit().putString("credentials", ScheduleApi.credentials).apply()
 
         setResult(Activity.RESULT_OK, null)
         finish()
