@@ -445,7 +445,7 @@ public class AddNewClassActivity extends AppCompatActivity {
                 String dateEnd = null;
                 String daysOfWeek = null;
                 if (mRecurrence != null) {
-                    period = String.valueOf(mRecurrence.getDays());
+                    period = String.valueOf(mRecurrence.toStandardDays().getDays());
                     dateEnd = ScheduleDbHelper.Companion.format(mEndDate);
                     if (mRecurrence.getWeeks() != 0) {
                         daysOfWeek = ScheduleDbHelper.Companion.format(mDaysOfWeek);
