@@ -58,7 +58,7 @@ interface ScheduleApiService {
     @DELETE("teachers/{id}/")
     fun deleteTeacher(@Path("id") id: Long): Call<Teacher>
 
-    @GET("classes/{date}")
+    @GET("classes/{date}/")
     fun getClasses(@Path("date") date: LocalDate): Call<ScheduleClass>
 
     @POST("classes/")
@@ -73,7 +73,7 @@ interface ScheduleApiService {
     @POST("times/")
     fun createTime(@Body time: Time): Call<Time>
 
-    @GET("schedule/{date}")
+    @GET("schedule/{date}/")
     fun getSchedule(@Path("date") date: LocalDate): Call<List<ScheduleClass>>
 
     @GET("tasks/")
