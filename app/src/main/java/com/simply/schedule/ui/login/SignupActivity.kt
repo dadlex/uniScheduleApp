@@ -128,8 +128,8 @@ class SignupActivity : AppCompatActivity() {
             mUsernameText.error = null
         }
 
-        if (password.isEmpty() || password.length < 4 || password.length > 10) {
-            mPasswordText.error = "Between 4 and 10 characters"
+        if (password.isEmpty()) {
+            mPasswordText.error = "Cannot be blank"
             valid = false
         } else {
             mPasswordText.error = null
