@@ -135,7 +135,7 @@ class SignupActivity : AppCompatActivity() {
             mPasswordText.error = null
         }
 
-        if (mPasswordText.error != null && reEnterPassword != password) {
+        if (mPasswordText.error == null && reEnterPassword != password) {
             mReEnterPasswordText.error = "Passwords do not match"
             valid = false
         } else {
