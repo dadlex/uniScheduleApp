@@ -29,14 +29,14 @@ FR8
 
 @LargeTest
 @RunWith(AndroidJUnit4::class)
-class ShowScheduleAfterAuthTest {
+class SuccessfulAuthTest {
 
     @Rule
     @JvmField
     var mActivityTestRule = ActivityTestRule(MainActivity::class.java)
 
     @Test
-    fun showScheduleAfterAuthTest() {
+    fun successfulAuthTest() {
         // Added a sleep statement to match the app's execution delay.
         // The recommended way to handle such scenarios is to use Espresso idling resources:
         // https://google.github.io/android-testing-support-library/docs/espresso/idling-resource/index.html
@@ -54,6 +54,7 @@ class ShowScheduleAfterAuthTest {
                 )
             )
         )
+
         textInputEditText.perform(scrollTo(), replaceText("alex"), closeSoftKeyboard())
 
         val textInputEditText2 = onView(

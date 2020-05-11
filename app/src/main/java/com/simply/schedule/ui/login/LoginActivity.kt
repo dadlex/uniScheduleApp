@@ -112,7 +112,12 @@ class LoginActivity : AppCompatActivity() {
     }
 
     private fun onLoginFailed() {
-        Toast.makeText(baseContext, "Login failed", Toast.LENGTH_LONG).show()
+        AlertDialog.Builder(mUsernameText.context)
+            .setMessage("Username or password is incorrect")
+            .setPositiveButton(android.R.string.ok) { dialog, _ ->
+                dialog.cancel()
+            }
+            .create().show()
         mLoginButton.isEnabled = true
     }
 

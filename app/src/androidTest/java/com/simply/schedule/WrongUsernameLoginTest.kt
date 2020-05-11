@@ -1,7 +1,6 @@
 package com.simply.schedule
 
 
-import android.app.Activity
 import android.view.View
 import android.view.ViewGroup
 import androidx.test.espresso.Espresso.onView
@@ -9,39 +8,36 @@ import androidx.test.espresso.action.ViewActions.*
 import androidx.test.espresso.assertion.ViewAssertions.matches
 import androidx.test.espresso.matcher.ViewMatchers.*
 import androidx.test.filters.LargeTest
-import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.rule.ActivityTestRule
 import androidx.test.runner.AndroidJUnit4
-import androidx.test.runner.lifecycle.ActivityLifecycleMonitorRegistry
-import androidx.test.runner.lifecycle.Stage
 import org.hamcrest.Description
 import org.hamcrest.Matcher
 import org.hamcrest.Matchers.`is`
 import org.hamcrest.Matchers.allOf
 import org.hamcrest.TypeSafeMatcher
+import org.hamcrest.core.IsInstanceOf
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 
-
 /*
-FR9
-1. Auth
-2. Change calendar date to another
-3. Check that view is displayed
-
+FR6 part1
+1. Fill in wrong username
+2. Fill in right password
+3. Click login
+4. Check that popup with a "incorrect username or password" message appeared
  */
 
 @LargeTest
 @RunWith(AndroidJUnit4::class)
-class ChangeDayTest {
+class WrongUsernameLoginTest {
 
     @Rule
     @JvmField
     var mActivityTestRule = ActivityTestRule(MainActivity::class.java)
 
     @Test
-    fun changeDayTest() {
+    fun wrongUsernameLoginTest() {
         // Added a sleep statement to match the app's execution delay.
         // The recommended way to handle such scenarios is to use Espresso idling resources:
         // https://google.github.io/android-testing-support-library/docs/espresso/idling-resource/index.html
@@ -59,7 +55,7 @@ class ChangeDayTest {
                 )
             )
         )
-        textInputEditText.perform(scrollTo(), replaceText("alex"), closeSoftKeyboard())
+        textInputEditText.perform(scrollTo(), replaceText("akex"), closeSoftKeyboard())
 
         val textInputEditText2 = onView(
             allOf(
@@ -89,61 +85,38 @@ class ChangeDayTest {
         )
         materialButton.perform(scrollTo(), click())
 
-        // Added a sleep statement to match the app's execution delay.
-        // The recommended way to handle such scenarios is to use Espresso idling resources:
-        // https://google.github.io/android-testing-support-library/docs/espresso/idling-resource/index.html
-        Thread.sleep(700)
-
-        val simpleWeekView = onView(
+        val textView = onView(
             allOf(
+                withId(android.R.id.message), withText("Username or password is incorrect"),
                 childAtPosition(
-                    allOf(
-                        withId(R.id.vp_week),
-                        childAtPosition(
-                            withId(R.id.frameContent),
-                            1
-                        )
+                    childAtPosition(
+                        withId(R.id.scrollView),
+                        0
                     ),
                     1
                 ),
                 isDisplayed()
             )
         )
-        simpleWeekView.perform(click())
+        textView.check(matches(withText("Username or password is incorrect")))
 
-        val view = onView(
+        val frameLayout = onView(
             allOf(
-                withParent(
+                withId(android.R.id.content),
+                childAtPosition(
                     allOf(
-                        withId(R.id.vp_week),
+                        withId(R.id.action_bar_root),
                         childAtPosition(
-                            withId(R.id.frameContent),
-                            2
+                            IsInstanceOf.instanceOf(android.widget.FrameLayout::class.java),
+                            0
                         )
-                    )
+                    ),
+                    0
                 ),
                 isDisplayed()
             )
         )
-
-        view.check(matches(isDisplayed()))
-
-        val currentActivity = getCurrentActivity()
-        val viewVpWeek = currentActivity?.findViewById<View>(R.id.vp_week)
-        viewVpWeek.
-    }
-
-    private fun getCurrentActivity(): Activity? {
-        val currentActivity = arrayOfNulls<Activity>(1)
-        InstrumentationRegistry.getInstrumentation().runOnMainSync(Runnable {
-            val allActivities =
-                ActivityLifecycleMonitorRegistry.getInstance()
-                    .getActivitiesInStage(Stage.RESUMED)
-            if (!allActivities.isEmpty()) {
-                currentActivity[0] = allActivities.iterator().next()
-            }
-        })
-        return currentActivity[0]
+        frameLayout.check(matches(isDisplayed()))
     }
 
     private fun childAtPosition(
