@@ -129,8 +129,8 @@ class LoginActivity : AppCompatActivity() {
             mUsernameText.error = null
         }
 
-        if (password.isEmpty() || password.length < 4 || password.length > 100) {
-            mPasswordText.error = "between 4 and 100 alphanumeric characters"
+        if (password.isEmpty()) {
+            mPasswordText.error = "Cannot be blank"
             valid = false
         } else {
             mPasswordText.error = null
