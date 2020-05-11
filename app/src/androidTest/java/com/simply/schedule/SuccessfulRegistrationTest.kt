@@ -19,11 +19,12 @@ import org.hamcrest.core.IsInstanceOf
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import java.util.*
 
 /*
 FR1 FR2 FR4 FR5
 1. Go to create account page
-2. Fill in username and password
+2. Fill in username and password, where username is email (email is a subtype of any login)
 3. Press create
 4. Check the registration successful message
 
@@ -75,7 +76,9 @@ class SuccessfulRegistrationTest {
                 )
             )
         )
-        textInputEditText.perform(scrollTo(), replaceText("reg"), closeSoftKeyboard())
+
+        val timeInMillis = Calendar.getInstance().timeInMillis
+        textInputEditText.perform(scrollTo(), replaceText("$timeInMillis@gmail.com"), closeSoftKeyboard())
 
         val textInputEditText2 = onView(
             allOf(
@@ -134,16 +137,6 @@ class SuccessfulRegistrationTest {
         )
         textView.check(matches(withText("Registration successful")))
 
-        val linearLayout = onView(
-            allOf(
-                childAtPosition(
-                    IsInstanceOf.instanceOf(android.widget.FrameLayout::class.java),
-                    0
-                ),
-                isDisplayed()
-            )
-        )
-        linearLayout.check(matches(isDisplayed()))
     }
 
     private fun childAtPosition(

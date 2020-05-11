@@ -34,7 +34,10 @@ import org.hamcrest.Matchers.anything
 import org.hamcrest.Matchers.`is`
 /*
 1. Go to create account page
-2. Fill in 
+2. Fill in incorrect data. A password that is shorter than 4 symbols
+3. Press create button
+4. Check that reenter text view has error text "passwords do not match"
+5. Check that page is still the same and there is no popup window
  */
 @LargeTest
 @RunWith(AndroidJUnit4::class)
