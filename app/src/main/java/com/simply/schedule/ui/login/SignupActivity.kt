@@ -135,7 +135,7 @@ class SignupActivity : AppCompatActivity() {
             mPasswordText.error = null
         }
 
-        if (reEnterPassword.isEmpty() || reEnterPassword.length < 4 || reEnterPassword.length > 10 || reEnterPassword != password) {
+        if (mPasswordText.error != null && reEnterPassword != password) {
             mReEnterPasswordText.error = "Passwords do not match"
             valid = false
         } else {
