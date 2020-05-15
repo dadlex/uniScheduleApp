@@ -121,6 +121,7 @@ class WrongPasswordLoginTest {
             )
         )
         frameLayout.check(matches(isDisplayed()))
+        Thread.sleep(700)
     }
 
     private fun getCurrentActivity(): Activity? {

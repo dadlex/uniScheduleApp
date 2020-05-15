@@ -123,20 +123,6 @@ class FailedRegistrationTest {
         )
         materialButton.perform(scrollTo(), click())
 
-        val linearLayout = onView(
-            allOf(
-                childAtPosition(
-                    childAtPosition(
-                        IsInstanceOf.instanceOf(android.widget.LinearLayout::class.java),
-                        3
-                    ),
-                    1
-                ),
-                isDisplayed()
-            )
-        )
-        linearLayout.check(matches(isDisplayed()))
-
         val button = onView(
             allOf(
                 withId(R.id.btn_signup),

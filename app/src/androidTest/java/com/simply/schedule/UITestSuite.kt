@@ -16,6 +16,6 @@ import org.junit.runners.Suite.SuiteClasses
     WrongUsernameLoginTest::class,
     SuccessfulAuthTest::class,
     ChangeDayTest::class,
-    AddTeacherTest::class
+    AddDeleteTeacherTest::class
     )
 class UITestSuite

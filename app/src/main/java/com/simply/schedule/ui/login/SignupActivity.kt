@@ -110,12 +110,7 @@ class SignupActivity : AppCompatActivity() {
     }
 
     private fun onSignupFailed() {
-        AlertDialog.Builder(mUsernameText.context)
-            .setMessage("Signup failed")
-            .setPositiveButton(android.R.string.ok) { dialog, _ ->
-                dialog.cancel()
-            }
-            .create().show()
+        Toast.makeText(baseContext, "Signup failed", Toast.LENGTH_LONG).show()
         mSignupButton.isEnabled = true
     }
 
