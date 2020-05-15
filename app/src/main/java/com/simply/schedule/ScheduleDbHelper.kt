@@ -367,10 +367,12 @@ class ScheduleDbHelper(private val context: Context) :
             val r = context.resources
 
             if (period.years == 0) {
-                when (period.days) {
-                    0 -> return r.getString(R.string.today)
-                    1 -> return r.getString(R.string.tomorrow)
-                    -1 -> return r.getString(R.string.yesterday)
+                if (period.weeks == 0 && period.months == 0) {
+                    when (period.days) {
+                        0 -> return r.getString(R.string.today)
+                        1 -> return r.getString(R.string.tomorrow)
+                        -1 -> return r.getString(R.string.yesterday)
+                    }
                 }
 
                 when (weeks) {
