@@ -1,6 +1,7 @@
 package com.simply.schedule
 
 
+import android.app.Activity
 import android.view.View
 import android.view.ViewGroup
 import androidx.test.espresso.Espresso.onView
@@ -8,8 +9,12 @@ import androidx.test.espresso.action.ViewActions.*
 import androidx.test.espresso.assertion.ViewAssertions.matches
 import androidx.test.espresso.matcher.ViewMatchers.*
 import androidx.test.filters.LargeTest
+import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.rule.ActivityTestRule
 import androidx.test.runner.AndroidJUnit4
+import androidx.test.runner.lifecycle.ActivityLifecycleMonitorRegistry
+import androidx.test.runner.lifecycle.Stage
+import com.haibin.calendarview.CalendarView
 import org.hamcrest.Description
 import org.hamcrest.Matcher
 import org.hamcrest.Matchers.`is`
@@ -19,6 +24,8 @@ import org.joda.time.LocalDate
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import java.text.SimpleDateFormat
+import java.util.*
 
 /*
 FR8
@@ -41,50 +48,53 @@ class SuccessfulAuthTest {
         // The recommended way to handle such scenarios is to use Espresso idling resources:
         // https://google.github.io/android-testing-support-library/docs/espresso/idling-resource/index.html
         Thread.sleep(700)
+        //val curActivity = getCurrentActivity()?.javaClass?.name
 
-        val textInputEditText = onView(
-            allOf(
-                withId(R.id.input_username),
-                childAtPosition(
+        //if (curActivity=="com.simply.schedule.ui.login.LoginActivity") {
+            val textInputEditText = onView(
+                allOf(
+                    withId(R.id.input_username),
                     childAtPosition(
-                        withClassName(`is`("com.google.android.material.textfield.TextInputLayout")),
+                        childAtPosition(
+                            withClassName(`is`("com.google.android.material.textfield.TextInputLayout")),
+                            0
+                        ),
                         0
-                    ),
-                    0
+                    )
                 )
             )
-        )
 
-        textInputEditText.perform(scrollTo(), replaceText("alex"), closeSoftKeyboard())
+            //textInputEditText.
+            textInputEditText.perform(scrollTo(), replaceText("alex"), closeSoftKeyboard())
 
-        val textInputEditText2 = onView(
-            allOf(
-                withId(R.id.input_password),
-                childAtPosition(
+            val textInputEditText2 = onView(
+                allOf(
+                    withId(R.id.input_password),
                     childAtPosition(
-                        withClassName(`is`("com.google.android.material.textfield.TextInputLayout")),
+                        childAtPosition(
+                            withClassName(`is`("com.google.android.material.textfield.TextInputLayout")),
+                            0
+                        ),
                         0
-                    ),
-                    0
+                    )
                 )
             )
-        )
-        textInputEditText2.perform(scrollTo(), replaceText("qwe1"), closeSoftKeyboard())
+            textInputEditText2.perform(scrollTo(), replaceText("qwe1"), closeSoftKeyboard())
 
-        val materialButton = onView(
-            allOf(
-                withId(R.id.btn_login), withText("Login"),
-                childAtPosition(
+            val materialButton = onView(
+                allOf(
+                    withId(R.id.btn_login), withText("Login"),
                     childAtPosition(
-                        withClassName(`is`("android.widget.ScrollView")),
-                        0
-                    ),
-                    3
+                        childAtPosition(
+                            withClassName(`is`("android.widget.ScrollView")),
+                            0
+                        ),
+                        3
+                    )
                 )
             )
-        )
-        materialButton.perform(scrollTo(), click())
-
+            materialButton.perform(scrollTo(), click())
+        // }
         // Added a sleep statement to match the app's execution delay.
         // The recommended way to handle such scenarios is to use Espresso idling resources:
         // https://google.github.io/android-testing-support-library/docs/espresso/idling-resource/index.html
@@ -121,7 +131,37 @@ class SuccessfulAuthTest {
         )
         scrollView.check(matches(isDisplayed()))
 
+        val currentActivity = getCurrentActivity()
+        val viewVpWeek = currentActivity?.findViewById<CalendarView>(R.id.cvMainCalendar)
+        val currentDate =
+            SimpleDateFormat("dd-MM-yyyy", Locale.getDefault()).format(Date())
 
+        val calendar = viewVpWeek!!.selectedCalendar
+        val monthFromView = calendar.month
+        var month = ""
+
+        month = if (monthFromView < 10)
+            "0$monthFromView"
+        else
+            monthFromView.toString()
+
+        val viewDate = calendar.day.toString() + "-" + month + "-" +
+                calendar.year.toString()
+
+        assert(currentDate.equals(viewDate))
+    }
+
+    private fun getCurrentActivity(): Activity? {
+        val currentActivity = arrayOfNulls<Activity>(1)
+        InstrumentationRegistry.getInstrumentation().runOnMainSync(Runnable {
+            val allActivities =
+                ActivityLifecycleMonitorRegistry.getInstance()
+                    .getActivitiesInStage(Stage.RESUMED)
+            if (!allActivities.isEmpty()) {
+                currentActivity[0] = allActivities.iterator().next()
+            }
+        })
+        return currentActivity[0]
     }
 
     private fun childAtPosition(

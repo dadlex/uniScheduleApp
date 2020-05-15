@@ -14,6 +14,7 @@ import androidx.test.rule.ActivityTestRule
 import androidx.test.runner.AndroidJUnit4
 import androidx.test.runner.lifecycle.ActivityLifecycleMonitorRegistry
 import androidx.test.runner.lifecycle.Stage
+import com.haibin.calendarview.CalendarView
 import org.hamcrest.Description
 import org.hamcrest.Matcher
 import org.hamcrest.Matchers.`is`
@@ -22,7 +23,8 @@ import org.hamcrest.TypeSafeMatcher
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
-
+import java.text.SimpleDateFormat
+import java.util.*
 
 /*
 FR9
@@ -129,8 +131,15 @@ class ChangeDayTest {
         view.check(matches(isDisplayed()))
 
         val currentActivity = getCurrentActivity()
-        val viewVpWeek = currentActivity?.findViewById<View>(R.id.vp_week)
-        viewVpWeek.
+        val viewVpWeek = currentActivity?.findViewById<CalendarView>(R.id.vp_week)
+        val currentDate =
+            SimpleDateFormat("dd-MM-yyyy", Locale.getDefault()).format(Date())
+
+        val calendar = viewVpWeek!!.selectedCalendar
+        val viewDate = calendar.day.toString() + "-" + calendar.month.toString() + "-" +
+                calendar.year.toString()
+
+        assert(currentDate.equals(viewDate))
     }
 
     private fun getCurrentActivity(): Activity? {

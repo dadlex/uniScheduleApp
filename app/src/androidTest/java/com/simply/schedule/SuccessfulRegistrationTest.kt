@@ -1,6 +1,7 @@
 package com.simply.schedule
 
 
+import android.app.Activity
 import android.view.View
 import android.view.ViewGroup
 import androidx.test.espresso.Espresso.onView
@@ -8,8 +9,11 @@ import androidx.test.espresso.action.ViewActions.*
 import androidx.test.espresso.assertion.ViewAssertions.matches
 import androidx.test.espresso.matcher.ViewMatchers.*
 import androidx.test.filters.LargeTest
+import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.rule.ActivityTestRule
 import androidx.test.runner.AndroidJUnit4
+import androidx.test.runner.lifecycle.ActivityLifecycleMonitorRegistry
+import androidx.test.runner.lifecycle.Stage
 import org.hamcrest.Description
 import org.hamcrest.Matcher
 import org.hamcrest.Matchers.`is`
@@ -137,6 +141,19 @@ class SuccessfulRegistrationTest {
         )
         textView.check(matches(withText("Registration successful")))
 
+    }
+
+    private fun getCurrentActivity(): Activity? {
+        val currentActivity = arrayOfNulls<Activity>(1)
+        InstrumentationRegistry.getInstrumentation().runOnMainSync(Runnable {
+            val allActivities =
+                ActivityLifecycleMonitorRegistry.getInstance()
+                    .getActivitiesInStage(Stage.RESUMED)
+            if (!allActivities.isEmpty()) {
+                currentActivity[0] = allActivities.iterator().next()
+            }
+        })
+        return currentActivity[0]
     }
 
     private fun childAtPosition(

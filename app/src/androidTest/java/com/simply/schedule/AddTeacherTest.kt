@@ -1,6 +1,7 @@
 package com.simply.schedule
 
 
+import android.app.Activity
 import android.view.View
 import android.view.ViewGroup
 import androidx.test.espresso.Espresso.onView
@@ -8,8 +9,11 @@ import androidx.test.espresso.action.ViewActions.*
 import androidx.test.espresso.assertion.ViewAssertions.matches
 import androidx.test.espresso.matcher.ViewMatchers.*
 import androidx.test.filters.LargeTest
+import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.rule.ActivityTestRule
 import androidx.test.runner.AndroidJUnit4
+import androidx.test.runner.lifecycle.ActivityLifecycleMonitorRegistry
+import androidx.test.runner.lifecycle.Stage
 import org.hamcrest.Description
 import org.hamcrest.Matcher
 import org.hamcrest.Matchers.`is`
@@ -19,6 +23,7 @@ import org.hamcrest.core.IsInstanceOf
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import java.util.*
 
 /*FR22
 1) Authorize
@@ -45,134 +50,53 @@ class AddTeacherTest {
         // https://google.github.io/android-testing-support-library/docs/espresso/idling-resource/index.html
         Thread.sleep(700)
 
-        val textInputEditText = onView(
-            allOf(
-                withId(R.id.input_username),
-                childAtPosition(
+        val curActivity = getCurrentActivity()?.javaClass?.name
+
+        if (curActivity=="com.simply.schedule.ui.login.LoginActivity") {
+
+
+            val textInputEditText = onView(
+                allOf(
+                    withId(R.id.input_username),
                     childAtPosition(
-                        withClassName(`is`("com.google.android.material.textfield.TextInputLayout")),
+                        childAtPosition(
+                            withClassName(`is`("com.google.android.material.textfield.TextInputLayout")),
+                            0
+                        ),
                         0
-                    ),
-                    0
+                    )
                 )
             )
-        )
-        textInputEditText.perform(scrollTo(), replaceText("alex"), closeSoftKeyboard())
+            textInputEditText.perform(scrollTo(), replaceText("alex"), closeSoftKeyboard())
 
-        val textInputEditText2 = onView(
-            allOf(
-                withId(R.id.input_password),
-                childAtPosition(
+            val textInputEditText2 = onView(
+                allOf(
+                    withId(R.id.input_password),
                     childAtPosition(
-                        withClassName(`is`("com.google.android.material.textfield.TextInputLayout")),
+                        childAtPosition(
+                            withClassName(`is`("com.google.android.material.textfield.TextInputLayout")),
+                            0
+                        ),
                         0
-                    ),
-                    0
+                    )
                 )
             )
-        )
-        textInputEditText2.perform(scrollTo(), replaceText("qwwe"), closeSoftKeyboard())
+            textInputEditText2.perform(scrollTo(), replaceText("qwe1"), closeSoftKeyboard())
 
-        val textInputEditText3 = onView(
-            allOf(
-                withId(R.id.input_password), withText("qwwe"),
-                childAtPosition(
+            val materialButton = onView(
+                allOf(
+                    withId(R.id.btn_login), withText("Login"),
                     childAtPosition(
-                        withClassName(`is`("com.google.android.material.textfield.TextInputLayout")),
-                        0
-                    ),
-                    0
+                        childAtPosition(
+                            withClassName(`is`("android.widget.ScrollView")),
+                            0
+                        ),
+                        3
+                    )
                 )
             )
-        )
-        textInputEditText3.perform(scrollTo(), click())
-
-        val textInputEditText4 = onView(
-            allOf(
-                withId(R.id.input_password), withText("qwwe"),
-                childAtPosition(
-                    childAtPosition(
-                        withClassName(`is`("com.google.android.material.textfield.TextInputLayout")),
-                        0
-                    ),
-                    0
-                )
-            )
-        )
-        textInputEditText4.perform(scrollTo(), replaceText("qwe"))
-
-        val textInputEditText5 = onView(
-            allOf(
-                withId(R.id.input_password), withText("qwe"),
-                childAtPosition(
-                    childAtPosition(
-                        withClassName(`is`("com.google.android.material.textfield.TextInputLayout")),
-                        0
-                    ),
-                    0
-                ),
-                isDisplayed()
-            )
-        )
-        textInputEditText5.perform(closeSoftKeyboard())
-
-        val textInputEditText6 = onView(
-            allOf(
-                withId(R.id.input_password), withText("qwe"),
-                childAtPosition(
-                    childAtPosition(
-                        withClassName(`is`("com.google.android.material.textfield.TextInputLayout")),
-                        0
-                    ),
-                    0
-                )
-            )
-        )
-        textInputEditText6.perform(scrollTo(), click())
-
-        val textInputEditText7 = onView(
-            allOf(
-                withId(R.id.input_password), withText("qwe"),
-                childAtPosition(
-                    childAtPosition(
-                        withClassName(`is`("com.google.android.material.textfield.TextInputLayout")),
-                        0
-                    ),
-                    0
-                )
-            )
-        )
-        textInputEditText7.perform(scrollTo(), replaceText("qwe1"))
-
-        val textInputEditText8 = onView(
-            allOf(
-                withId(R.id.input_password), withText("qwe1"),
-                childAtPosition(
-                    childAtPosition(
-                        withClassName(`is`("com.google.android.material.textfield.TextInputLayout")),
-                        0
-                    ),
-                    0
-                ),
-                isDisplayed()
-            )
-        )
-        textInputEditText8.perform(closeSoftKeyboard())
-
-        val materialButton = onView(
-            allOf(
-                withId(R.id.btn_login), withText("Login"),
-                childAtPosition(
-                    childAtPosition(
-                        withClassName(`is`("android.widget.ScrollView")),
-                        0
-                    ),
-                    3
-                )
-            )
-        )
-        materialButton.perform(scrollTo(), click())
-
+            materialButton.perform(scrollTo(), click())
+        }
         // Added a sleep statement to match the app's execution delay.
         // The recommended way to handle such scenarios is to use Espresso idling resources:
         // https://google.github.io/android-testing-support-library/docs/espresso/idling-resource/index.html
@@ -289,7 +213,8 @@ class AddTeacherTest {
                 isDisplayed()
             )
         )
-        appCompatEditText3.perform(replaceText("Ivan"), closeSoftKeyboard())
+        val timeInMillis = Calendar.getInstance().timeInMillis
+        appCompatEditText3.perform(replaceText(timeInMillis.toString() + "Ivan"), closeSoftKeyboard())
 
         val appCompatEditText4 = onView(
             allOf(
@@ -375,6 +300,19 @@ class AddTeacherTest {
             )
         )
         textView.check(matches(withText("Ivan")))
+    }
+
+    private fun getCurrentActivity(): Activity? {
+        val currentActivity = arrayOfNulls<Activity>(1)
+        InstrumentationRegistry.getInstrumentation().runOnMainSync(Runnable {
+            val allActivities =
+                ActivityLifecycleMonitorRegistry.getInstance()
+                    .getActivitiesInStage(Stage.RESUMED)
+            if (!allActivities.isEmpty()) {
+                currentActivity[0] = allActivities.iterator().next()
+            }
+        })
+        return currentActivity[0]
     }
 
     private fun childAtPosition(
