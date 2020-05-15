@@ -99,20 +99,20 @@ class TasksAdapter(private val context: Context, val listener: EventListener?) :
             }
 
             holder.ivColorCircle.apply {
-                if (item.class_ != null) {
-                    imageTintList = ColorStateList.valueOf(Color.parseColor(item.class_.subject.color))
-                } else {
+//                if (item.class_ != null) {
+//                    imageTintList = ColorStateList.valueOf(Color.parseColor(item.class_.subject.color))
+//                } else {
                     visibility = View.GONE
-                }
+//                }
             }
 
             holder.tvSubject.apply {
-                if (item.class_ != null) {
-                    visibility = View.VISIBLE
-                    text = item.class_.subject.title
-                } else {
+//                if (item.class_ != null) {
+//                    visibility = View.VISIBLE
+//                    text = item.class_.subject.title
+//                } else {
                     visibility = View.GONE
-                }
+//                }
             }
 
             holder.cbCompleted.apply {

@@ -9,7 +9,7 @@ data class Task(
     val description: String?,
     val priority: Int?,
     @Json(name = "is_completed") val isCompleted: Boolean = false,
-    @Json(name = "class") val class_: Class? = null,
+    @Json(name = "class") val class_: Long? = null,
     @Json(name = "due_date") val dueDate: String? = null,
     @Json(name = "completed_at") val completedAt: String? = null,
     val owner: String? = null,
