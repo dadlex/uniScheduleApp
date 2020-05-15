@@ -41,7 +41,7 @@ class DateFormattingTest {
         )
         assertEquals(
             LocalDate.now().minusMonths(2).toString("MMMM").capitalize(),
-            getDateRelativeToToday(appContext, LocalDate.now().minusMonths(2))
+            getDateRelativeToToday(appContext, LocalDate.now().minusMonths(2)).capitalize()
         )
     }
 }
