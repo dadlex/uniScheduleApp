@@ -162,7 +162,20 @@ public class TeachersListActivity extends AppCompatActivity
                 builder.setMessage(R.string.dialog_message_delete_teacher_confirmation);
                 builder.setPositiveButton(android.R.string.ok, (dialog, which) -> {
                     ScheduleApi.INSTANCE.getRetrofitService().deleteTeacher(
-                            mTeachersAdapter.getItemId(position));
+                            mTeachersAdapter.getItemId(position)).enqueue(new Callback<Teacher>() {
+                        @Override
+                        public void onResponse(Call<Teacher> call, Response<Teacher> response) {
+                            refreshList();
+                        }
+
+                        @Override
+                        public void onFailure(Call<Teacher> call, Throwable t) {
+                            new AlertDialog.Builder(mTeachersList.getContext())
+                                    .setMessage(t.getMessage())
+                                    .setPositiveButton(R.string.back, (dialog, which1) -> dialog.cancel())
+                                    .show();
+                        }
+                    });
                     refreshList();
                 });
 
