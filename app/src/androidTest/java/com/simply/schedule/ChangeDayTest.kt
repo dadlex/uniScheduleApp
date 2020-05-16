@@ -129,36 +129,12 @@ class ChangeDayTest {
 
             fragment.mMainCalendar!!.scrollToCalendar(2020, 5, 12, false);
         }
-//        val simpleWeekView = onView(
-//            allOf(
-//                childAtPosition(
-//                    allOf(
-//                        withId(R.id.vp_week),
-//                        childAtPosition(
-//                            withId(R.id.frameContent),
-//                            1
-//                        )
-//                    ),
-//                    1
-//                ),
-//                isDisplayed()
-//            )
-//        )
-//        simpleWeekView.perform(click())
 
-        currentActivity.finish();
+        currentActivity.finish()
         currentActivity.overridePendingTransition(0, 0);
         startActivity(currentActivity.applicationContext, currentActivity.intent, null);
         val newViewDate = calendar.day.toString() + "-" + month + "-" +
                 calendar.year.toString()
-
-
-        //currentActivity.recreate();
-        /*finish();
-        val intent = parseU();
-        intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
-        startActivity(getIntent());*/
-
 
 
         assert(!currentDate.equals(newViewDate))

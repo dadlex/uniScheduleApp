@@ -1,15 +1,24 @@
 package com.simply.schedule
 
 
+import android.app.Activity
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.content.ContextCompat
+import androidx.navigation.fragment.NavHostFragment
 import androidx.test.espresso.Espresso.onView
 import androidx.test.espresso.action.ViewActions.*
 import androidx.test.espresso.assertion.ViewAssertions.matches
 import androidx.test.espresso.matcher.ViewMatchers.*
 import androidx.test.filters.LargeTest
+import androidx.test.internal.runner.junit4.statement.UiThreadStatement
+import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.rule.ActivityTestRule
 import androidx.test.runner.AndroidJUnit4
+import androidx.test.runner.lifecycle.ActivityLifecycleMonitorRegistry
+import androidx.test.runner.lifecycle.Stage
+import com.haibin.calendarview.CalendarView
+import com.simply.schedule.ui.schedule.ScheduleFragment
 import org.hamcrest.Description
 import org.hamcrest.Matcher
 import org.hamcrest.Matchers.`is`
@@ -18,6 +27,8 @@ import org.hamcrest.TypeSafeMatcher
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import java.text.SimpleDateFormat
+import java.util.*
 
 /*
 FR11
@@ -28,7 +39,7 @@ FR11
 
 @LargeTest
 @RunWith(AndroidJUnit4::class)
-class EmptyDayTestIdeallyRefactorWithCalendar {
+class EmptyDayTest {
 
     @Rule
     @JvmField
@@ -86,6 +97,63 @@ class EmptyDayTestIdeallyRefactorWithCalendar {
         // Added a sleep statement to match the app's execution delay.
         // The recommended way to handle such scenarios is to use Espresso idling resources:
         // https://google.github.io/android-testing-support-library/docs/espresso/idling-resource/index.html
+        Thread.sleep(700)
+
+        val currentActivity = getCurrentActivity()!! as MainActivity
+        UiThreadStatement.runOnUiThread {
+            val navHostFragment =
+                currentActivity.supportFragmentManager.findFragmentById(R.id.nav_host_fragment) as NavHostFragment?
+            val fragment =
+                navHostFragment!!.childFragmentManager.fragments[0] as ScheduleFragment
+
+            fragment.mMainCalendar!!.scrollToCalendar(2020, 5, 12, false);
+        }
+
+        currentActivity.finish();
+        currentActivity.overridePendingTransition(0, 0);
+        ContextCompat.startActivity(
+            currentActivity.applicationContext,
+            currentActivity.intent,
+            null
+        );
+
+        val viewVpWeek = currentActivity.findViewById<CalendarView>(R.id.cvMainCalendar)
+        val currentDate =
+            SimpleDateFormat("dd-MM-yyyy", Locale.getDefault()).format(Date())
+
+        val calendar = viewVpWeek!!.selectedCalendar
+        val monthFromView = calendar.month
+        var month = ""
+
+        month = if (monthFromView < 10)
+            "0$monthFromView"
+        else
+            monthFromView.toString()
+
+        val viewDate = calendar.day.toString() + "-" + month + "-" +
+                calendar.year.toString()
+
+        assert(currentDate.equals(viewDate))
+
+        UiThreadStatement.runOnUiThread {
+            val navHostFragment =
+                currentActivity.supportFragmentManager.findFragmentById(R.id.nav_host_fragment) as NavHostFragment?
+            val fragment =
+                navHostFragment!!.childFragmentManager.fragments[0] as ScheduleFragment
+
+            fragment.mMainCalendar!!.scrollToCalendar(2020, 4, 1, true);
+        }
+
+        currentActivity.finish()
+        currentActivity.overridePendingTransition(0, 0);
+        ContextCompat.startActivity(
+            currentActivity.applicationContext,
+            currentActivity.intent,
+            null
+        );
+        val newViewDate = calendar.day.toString() + "-" + month + "-" +
+                calendar.year.toString()
+
         Thread.sleep(700)
 
         val textView = onView(
@@ -169,6 +237,18 @@ class EmptyDayTestIdeallyRefactorWithCalendar {
 
     }
 
+    private fun getCurrentActivity(): Activity? {
+        val currentActivity = arrayOfNulls<Activity>(1)
+        InstrumentationRegistry.getInstrumentation().runOnMainSync(Runnable {
+            val allActivities =
+                ActivityLifecycleMonitorRegistry.getInstance()
+                    .getActivitiesInStage(Stage.RESUMED)
+            if (!allActivities.isEmpty()) {
+                currentActivity[0] = allActivities.iterator().next()
+            }
+        })
+        return currentActivity[0]
+    }
     private fun childAtPosition(
         parentMatcher: Matcher<View>, position: Int
     ): Matcher<View> {

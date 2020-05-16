@@ -1,6 +1,7 @@
 package com.simply.schedule
 
 
+import android.app.Activity
 import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView.ViewHolder
@@ -11,8 +12,11 @@ import androidx.test.espresso.assertion.ViewAssertions.matches
 import androidx.test.espresso.contrib.RecyclerViewActions.actionOnItemAtPosition
 import androidx.test.espresso.matcher.ViewMatchers.*
 import androidx.test.filters.LargeTest
+import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.rule.ActivityTestRule
 import androidx.test.runner.AndroidJUnit4
+import androidx.test.runner.lifecycle.ActivityLifecycleMonitorRegistry
+import androidx.test.runner.lifecycle.Stage
 import org.hamcrest.Description
 import org.hamcrest.Matcher
 import org.hamcrest.Matchers.*
@@ -460,7 +464,7 @@ class AddNotRepeatedClassRedoWithCalendar {
 
         val textView2 = onView(
             allOf(
-                withId(R.id.tvDateStart), withText("16.05.20"),
+                withId(R.id.tvDateStart), withText("15.05.20"),
                 childAtPosition(
                     allOf(
                         withId(R.id.flDateStartWrapper),
@@ -618,6 +622,19 @@ class AddNotRepeatedClassRedoWithCalendar {
             )
         )
         materialButton9.perform(scrollTo(), click())
+    }
+
+    private fun getCurrentActivity(): Activity? {
+        val currentActivity = arrayOfNulls<Activity>(1)
+        InstrumentationRegistry.getInstrumentation().runOnMainSync(Runnable {
+            val allActivities =
+                ActivityLifecycleMonitorRegistry.getInstance()
+                    .getActivitiesInStage(Stage.RESUMED)
+            if (!allActivities.isEmpty()) {
+                currentActivity[0] = allActivities.iterator().next()
+            }
+        })
+        return currentActivity[0]
     }
 
     private fun childAtPosition(

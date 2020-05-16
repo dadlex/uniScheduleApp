@@ -1,8 +1,11 @@
 package com.simply.schedule
 
 
+import android.app.Activity
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.content.ContextCompat
+import androidx.navigation.fragment.NavHostFragment
 import androidx.recyclerview.widget.RecyclerView.ViewHolder
 import androidx.test.espresso.Espresso.onData
 import androidx.test.espresso.Espresso.onView
@@ -11,8 +14,14 @@ import androidx.test.espresso.assertion.ViewAssertions.matches
 import androidx.test.espresso.contrib.RecyclerViewActions.actionOnItemAtPosition
 import androidx.test.espresso.matcher.ViewMatchers.*
 import androidx.test.filters.LargeTest
+import androidx.test.internal.runner.junit4.statement.UiThreadStatement
+import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.rule.ActivityTestRule
 import androidx.test.runner.AndroidJUnit4
+import androidx.test.runner.lifecycle.ActivityLifecycleMonitorRegistry
+import androidx.test.runner.lifecycle.Stage
+import com.haibin.calendarview.CalendarView
+import com.simply.schedule.ui.schedule.ScheduleFragment
 import org.hamcrest.Description
 import org.hamcrest.Matcher
 import org.hamcrest.Matchers.*
@@ -21,6 +30,9 @@ import org.hamcrest.core.IsInstanceOf
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import java.text.SimpleDateFormat
+import java.util.*
+
 /*
 FR13 FR14
 1. Auth
@@ -583,56 +595,44 @@ class AddClassRedoWithCalendar {
         // https://google.github.io/android-testing-support-library/docs/espresso/idling-resource/index.html
         Thread.sleep(700)
 
-        val simpleWeekView = onView(
-            allOf(
-                childAtPosition(
-                    allOf(
-                        withId(R.id.vp_week),
-                        childAtPosition(
-                            withId(R.id.frameContent),
-                            1
-                        )
-                    ),
-                    1
-                ),
-                isDisplayed()
-            )
-        )
-        simpleWeekView.perform(click())
+        val currentActivity = getCurrentActivity()!! as MainActivity
+        val viewVpWeek = currentActivity.findViewById<CalendarView>(R.id.cvMainCalendar)
+        val currentDate =
+            SimpleDateFormat("dd-MM-yyyy", Locale.getDefault()).format(Date())
 
-        val simpleWeekView2 = onView(
-            allOf(
-                childAtPosition(
-                    allOf(
-                        withId(R.id.vp_week),
-                        childAtPosition(
-                            withId(R.id.frameContent),
-                            1
-                        )
-                    ),
-                    1
-                ),
-                isDisplayed()
-            )
-        )
-        simpleWeekView2.perform(click())
+        val calendar = viewVpWeek!!.selectedCalendar
+        val monthFromView = calendar.month
+        var month = ""
 
-        val simpleWeekView3 = onView(
-            allOf(
-                childAtPosition(
-                    allOf(
-                        withId(R.id.vp_week),
-                        childAtPosition(
-                            withId(R.id.frameContent),
-                            1
-                        )
-                    ),
-                    1
-                ),
-                isDisplayed()
-            )
-        )
-        simpleWeekView3.perform(click())
+        month = if (monthFromView < 10)
+            "0$monthFromView"
+        else
+            monthFromView.toString()
+
+        val viewDate = calendar.day.toString() + "-" + month + "-" +
+                calendar.year.toString()
+
+        assert(currentDate.equals(viewDate))
+
+        UiThreadStatement.runOnUiThread {
+            val navHostFragment =
+                currentActivity.supportFragmentManager.findFragmentById(R.id.nav_host_fragment) as NavHostFragment?
+            val fragment =
+                navHostFragment!!.childFragmentManager.fragments[0] as ScheduleFragment
+
+            fragment.mMainCalendar!!.scrollToCalendar(2020, 5, 1, true);
+        }
+        Thread.sleep(700);
+        currentActivity.finish()
+        currentActivity.overridePendingTransition(0, 0);
+        ContextCompat.startActivity(
+            currentActivity.applicationContext,
+            currentActivity.intent,
+            null
+        );
+        val newViewDate = calendar.day.toString() + "-" + month + "-" +
+                calendar.year.toString()
+
 
         val constraintLayout6 = onView(
             allOf(
@@ -705,7 +705,7 @@ class AddClassRedoWithCalendar {
 
         val textView11 = onView(
             allOf(
-                withId(R.id.tvClassStartTime), withText("01:00"),
+                withId(R.id.tvClassStartTime),
                 childAtPosition(
                     allOf(
                         withId(R.id.clTimeContainer),
@@ -719,11 +719,11 @@ class AddClassRedoWithCalendar {
                 isDisplayed()
             )
         )
-        textView11.check(matches(withText("01:00")))
+        textView11.check(matches(isDisplayed()))
 
         val textView12 = onView(
             allOf(
-                withId(R.id.tvClassStartTime), withText("01:00"),
+                withId(R.id.tvClassStartTime),
                 childAtPosition(
                     allOf(
                         withId(R.id.clTimeContainer),
@@ -737,11 +737,11 @@ class AddClassRedoWithCalendar {
                 isDisplayed()
             )
         )
-        textView12.check(matches(withText("01:00")))
+        textView12.check(matches(isDisplayed()))
 
         val textView13 = onView(
             allOf(
-                withId(R.id.tvClassEndTime), withText("02:30"),
+                withId(R.id.tvClassEndTime),
                 childAtPosition(
                     allOf(
                         withId(R.id.clTimeContainer),
@@ -755,7 +755,7 @@ class AddClassRedoWithCalendar {
                 isDisplayed()
             )
         )
-        textView13.check(matches(withText("02:30")))
+        textView13.check(matches(isDisplayed()))
 
         val bottomNavigationItemView = onView(
             allOf(
@@ -800,6 +800,19 @@ class AddClassRedoWithCalendar {
             )
         )
         materialButton5.perform(scrollTo(), click())
+    }
+
+    private fun getCurrentActivity(): Activity? {
+        val currentActivity = arrayOfNulls<Activity>(1)
+        InstrumentationRegistry.getInstrumentation().runOnMainSync(Runnable {
+            val allActivities =
+                ActivityLifecycleMonitorRegistry.getInstance()
+                    .getActivitiesInStage(Stage.RESUMED)
+            if (!allActivities.isEmpty()) {
+                currentActivity[0] = allActivities.iterator().next()
+            }
+        })
+        return currentActivity[0]
     }
 
     private fun childAtPosition(
