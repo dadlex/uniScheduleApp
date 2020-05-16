@@ -7,11 +7,13 @@ import android.content.Intent.getIntent
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.content.ContextCompat.startActivity
+import androidx.navigation.fragment.NavHostFragment
 import androidx.test.espresso.Espresso.onView
 import androidx.test.espresso.action.ViewActions.*
 import androidx.test.espresso.assertion.ViewAssertions.matches
 import androidx.test.espresso.matcher.ViewMatchers.*
 import androidx.test.filters.LargeTest
+import androidx.test.internal.runner.junit4.statement.UiThreadStatement.runOnUiThread
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.rule.ActivityTestRule
 import androidx.test.runner.AndroidJUnit4
@@ -100,8 +102,8 @@ class ChangeDayTest {
         // https://google.github.io/android-testing-support-library/docs/espresso/idling-resource/index.html
         Thread.sleep(700)
 
-        val currentActivity = getCurrentActivity()
-        val viewVpWeek = currentActivity?.findViewById<CalendarView>(R.id.cvMainCalendar)
+        val currentActivity = getCurrentActivity()!! as MainActivity
+        val viewVpWeek = currentActivity.findViewById<CalendarView>(R.id.cvMainCalendar)
         val currentDate =
             SimpleDateFormat("dd-MM-yyyy", Locale.getDefault()).format(Date())
 
@@ -119,10 +121,14 @@ class ChangeDayTest {
 
         assert(currentDate.equals(viewDate))
 
-        calendar?.month = 5
-        calendar?.day = 12
-        calendar?.year = 2020
+        runOnUiThread {
+            val navHostFragment =
+                currentActivity.supportFragmentManager.findFragmentById(R.id.nav_host_fragment) as NavHostFragment?
+            val fragment =
+                navHostFragment!!.childFragmentManager.fragments[0] as ScheduleFragment
 
+            fragment.mMainCalendar!!.scrollToCalendar(2020, 5, 12, false);
+        }
 //        val simpleWeekView = onView(
 //            allOf(
 //                childAtPosition(
