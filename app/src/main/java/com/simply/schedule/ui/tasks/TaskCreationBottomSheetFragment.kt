@@ -45,7 +45,6 @@ class TaskCreationBottomSheetFragment : Fragment() {
     private lateinit var mPriorityButton: ImageButton
     private lateinit var mSendButton: ImageButton
 
-    private lateinit var mDatabaseHelper: ScheduleDbHelper
     private lateinit var mBottomSheetBehavior: BottomSheetBehavior<ViewGroup>
     private lateinit var mPriorityPopupWindow: PopupWindow
     private var mListener: OnFragmentInteractionListener? = null
@@ -106,8 +105,6 @@ class TaskCreationBottomSheetFragment : Fragment() {
     @SuppressLint("ClickableViewAccessibility")
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
-
-        mDatabaseHelper = ScheduleDbHelper(context!!)
 
         val customView =
             layoutInflater.inflate(R.layout.popup_priorities, mBottomSheet, false) as ViewGroup
@@ -267,13 +264,13 @@ class TaskCreationBottomSheetFragment : Fragment() {
 
     private fun setPriority(priorityLevel: Int) {
         mTaskPriority = priorityLevel
-//        mPriorityButton.setImageResource(when (priorityLevel) {
-//            0 -> R.drawable.ic_no_priority_24dp
-//            1 -> R.drawable.ic_priority_low_24dp
-//            2 -> R.drawable.ic_priority_medium_24dp
-//            3 -> R.drawable.ic_priority_high_24dp
-//            else -> 0
-//        })
+        mPriorityButton.setImageResource(when (priorityLevel) {
+            0 -> R.drawable.ic_no_priority_24dp
+            1 -> R.drawable.ic_priority_low_24dp
+            2 -> R.drawable.ic_priority_medium_24dp
+            3 -> R.drawable.ic_priority_high_24dp
+            else -> 0
+        })
     }
 
     private fun submitNewTaskForm() {
@@ -349,10 +346,9 @@ class TaskCreationBottomSheetFragment : Fragment() {
     private fun setDueDate(date: LocalDate?) {
         mTaskDate = date
         if (date != null) {
-
-//            mDateButton.setColorFilter(ContextCompat.getColor(requireContext(), R.color.accent))
+            mDateButton.setColorFilter(ContextCompat.getColor(requireContext(), R.color.secondary))
         } else {
-//            mDateButton.clearColorFilter()
+            mDateButton.clearColorFilter()
         }
     }
 

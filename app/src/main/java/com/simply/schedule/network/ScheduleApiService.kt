@@ -79,6 +79,9 @@ interface ScheduleApiService {
     @GET("tasks/")
     fun getTasks(): Call<List<Task>>
 
+    @GET("tasks/{id}/")
+    fun getTask(@Path("id") id: Long): Call<Task>
+
     @POST("tasks/")
     fun createTask(@Body task: Task): Call<Task>
 
