@@ -32,8 +32,8 @@ import retrofit2.Callback
 import retrofit2.Response
 
 class ScheduleFragment : Fragment(), OnDateSelectedListener {
+    var mMainCalendar: CalendarView? = null
     private var mClassesRecyclerView: RecyclerView? = null
-    private var mMainCalendar: CalendarView? = null
     private var mNoClassesPlaceholder: TextView? = null
     private var mActionBar: ActionBar? = null
     private var mScheduleClassesAdapter: ScheduleClassesAdapter? = null
