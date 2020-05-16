@@ -19,7 +19,15 @@ import org.hamcrest.core.IsInstanceOf
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
-
+/*
+FR21
+1. Auth
+2. Go to crate class view
+3. Go to select teacher view
+4. Check that there are both existing teacher and add button
+5. Go to settings page
+6. Log out
+ */
 @LargeTest
 @RunWith(AndroidJUnit4::class)
 class ExistingTeacherTest {
