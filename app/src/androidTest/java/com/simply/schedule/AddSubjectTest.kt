@@ -1,53 +1,45 @@
 package com.simply.schedule
 
 
-import android.app.Activity
-import android.content.Intent
-import android.content.Intent.getIntent
 import android.view.View
 import android.view.ViewGroup
-import androidx.core.content.ContextCompat.startActivity
 import androidx.test.espresso.Espresso.onView
 import androidx.test.espresso.action.ViewActions.*
 import androidx.test.espresso.assertion.ViewAssertions.matches
 import androidx.test.espresso.matcher.ViewMatchers.*
 import androidx.test.filters.LargeTest
-import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.rule.ActivityTestRule
 import androidx.test.runner.AndroidJUnit4
-import androidx.test.runner.lifecycle.ActivityLifecycleMonitorRegistry
-import androidx.test.runner.lifecycle.Stage
-import com.haibin.calendarview.CalendarView
-import com.simply.schedule.ui.schedule.ScheduleFragment
 import org.hamcrest.Description
 import org.hamcrest.Matcher
 import org.hamcrest.Matchers.`is`
 import org.hamcrest.Matchers.allOf
 import org.hamcrest.TypeSafeMatcher
+import org.hamcrest.core.IsInstanceOf
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
-import java.text.SimpleDateFormat
 import java.util.*
-
 /*
-FR9 RF10
+FR16 FR18
 1. Auth
-2. Check that calendar's view is on today's date
-2. Change calendar date to another date
-3. Check that a different view is displayed
+2. Go to create class menu
+3. Go to create subject menu
+4. Create subject with rng name
+5. Press ok
+6. Check that the name of the subject as filled in
+7. Log out
  */
-
 @LargeTest
 @RunWith(AndroidJUnit4::class)
-class ChangeDayTest {
+class AddSubjectTest {
 
     @Rule
     @JvmField
     var mActivityTestRule = ActivityTestRule(MainActivity::class.java)
 
     @Test
-    fun changeDayTest() {
+    fun addSubjectTest() {
         // Added a sleep statement to match the app's execution delay.
         // The recommended way to handle such scenarios is to use Espresso idling resources:
         // https://google.github.io/android-testing-support-library/docs/espresso/idling-resource/index.html
@@ -100,62 +92,161 @@ class ChangeDayTest {
         // https://google.github.io/android-testing-support-library/docs/espresso/idling-resource/index.html
         Thread.sleep(700)
 
-        val currentActivity = getCurrentActivity()
-        val viewVpWeek = currentActivity?.findViewById<CalendarView>(R.id.cvMainCalendar)
-        val currentDate =
-            SimpleDateFormat("dd-MM-yyyy", Locale.getDefault()).format(Date())
+        val floatingActionButton = onView(
+            allOf(
+                withId(R.id.fab),
+                childAtPosition(
+                    allOf(
+                        withId(R.id.container),
+                        childAtPosition(
+                            withId(android.R.id.content),
+                            0
+                        )
+                    ),
+                    1
+                ),
+                isDisplayed()
+            )
+        )
+        floatingActionButton.perform(click())
 
-        val calendar = viewVpWeek!!.selectedCalendar
-        val monthFromView = calendar.month
-        var month = ""
+        // Added a sleep statement to match the app's execution delay.
+        // The recommended way to handle such scenarios is to use Espresso idling resources:
+        // https://google.github.io/android-testing-support-library/docs/espresso/idling-resource/index.html
+        Thread.sleep(700)
 
-        month = if (monthFromView < 10)
-            "0$monthFromView"
-        else
-            monthFromView.toString()
+        val constraintLayout = onView(allOf(withId(R.id.tvSubject)))
+        constraintLayout.perform(scrollTo(), click())
 
-        val viewDate = calendar.day.toString() + "-" + month + "-" +
-                calendar.year.toString()
+        val actionMenuItemView = onView(
+            allOf(
+                withContentDescription("Add subject"),
+                childAtPosition(
+                    childAtPosition(
+                        withId(R.id.toolbar),
+                        1
+                    ),
+                    0
+                ),
+                isDisplayed()
+            )
+        )
+        actionMenuItemView.perform(click())
 
-        assert(currentDate.equals(viewDate))
+        val appCompatImageButton = onView(
+            allOf(
+                withId(R.id.ibColor),
+                childAtPosition(
+                    childAtPosition(
+                        withId(R.id.rvColors),
+                        10
+                    ),
+                    0
+                )
+            )
+        )
+        appCompatImageButton.perform(scrollTo(), click())
 
-        calendar?.month = 5
-        calendar?.day = 12
-        calendar?.year = 2020
+        val textInputEditText3 = onView(
+            childAtPosition(
+                childAtPosition(
+                    withId(R.id.tilTitle),
+                    0
+                ),
+                0
+            )
+        )
+        textInputEditText3.perform(scrollTo(), click())
 
-//        val simpleWeekView = onView(
-//            allOf(
-//                childAtPosition(
-//                    allOf(
-//                        withId(R.id.vp_week),
-//                        childAtPosition(
-//                            withId(R.id.frameContent),
-//                            1
-//                        )
-//                    ),
-//                    1
-//                ),
-//                isDisplayed()
-//            )
-//        )
-//        simpleWeekView.perform(click())
+        val textInputEditText4 = onView(
+            childAtPosition(
+                childAtPosition(
+                    withId(R.id.tilTitle),
+                    0
+                ),
+                0
+            )
+        )
+        val timeInMillis = Calendar.getInstance().timeInMillis
+        textInputEditText4.perform(scrollTo(), replaceText("New$timeInMillis"), closeSoftKeyboard())
 
-        currentActivity.finish();
-        currentActivity.overridePendingTransition(0, 0);
-        startActivity(currentActivity.applicationContext, currentActivity.intent, null);
-        val newViewDate = calendar.day.toString() + "-" + month + "-" +
-                calendar.year.toString()
+        val editText = onView(
+            allOf(
+                withText("New$timeInMillis"),
+                childAtPosition(
+                    childAtPosition(
+                        withId(R.id.tilTitle),
+                        0
+                    ),
+                    0
+                ),
+                isDisplayed()
+            )
+        )
+        editText.check(matches(withText("New$timeInMillis")))
+
+        val imageButton = onView(
+            allOf(
+                withId(R.id.ibColor),
+                childAtPosition(
+                    childAtPosition(
+                        withId(R.id.rvColors),
+                        10
+                    ),
+                    0
+                ),
+                isDisplayed()
+            )
+        )
+        imageButton.check(matches(isDisplayed()))
+
+        val materialButton2 = onView(
+            allOf(
+                withId(android.R.id.button1), withText("ОК"),
+                childAtPosition(
+                    childAtPosition(
+                        withId(R.id.buttonPanel),
+                        0
+                    ),
+                    3
+                )
+            )
+        )
+        materialButton2.perform(scrollTo(), click())
+
+        val textView = onView(
+            allOf(
+                withId(R.id.tvSubject), withText("New$timeInMillis"),
+                childAtPosition(
+                    childAtPosition(
+                        IsInstanceOf.instanceOf(android.widget.LinearLayout::class.java),
+                        0
+                    ),
+                    1
+                ),
+                isDisplayed()
+            )
+        )
+        textView.check(matches(withText("New$timeInMillis")))
 
 
-        //currentActivity.recreate();
-        /*finish();
-        val intent = parseU();
-        intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
-        startActivity(getIntent());*/
-
-
-
-        assert(!currentDate.equals(newViewDate))
+        val appCompatImageButton2 = onView(
+            allOf(
+                withContentDescription("Перейти вверх"),
+                childAtPosition(
+                    allOf(
+                        withId(R.id.action_bar),
+                        childAtPosition(
+                            withId(R.id.action_bar_container),
+                            0
+                        )
+                    ),
+                    1
+                ),
+                isDisplayed()
+            )
+        )
+        appCompatImageButton2.perform(click())
 
         val bottomNavigationItemView = onView(
             allOf(
@@ -172,7 +263,7 @@ class ChangeDayTest {
         )
         bottomNavigationItemView.perform(click())
 
-        val materialButton2 = onView(
+        val materialButton3 = onView(
             allOf(
                 withId(R.id.logout_button), withText("Logout"),
                 childAtPosition(
@@ -185,9 +276,9 @@ class ChangeDayTest {
                 isDisplayed()
             )
         )
-        materialButton2.perform(click())
+        materialButton3.perform(click())
 
-        val textView = onView(
+        val textView2 = onView(
             allOf(
                 withId(android.R.id.message), withText("Do you want to logout?"),
                 childAtPosition(
@@ -200,9 +291,9 @@ class ChangeDayTest {
                 isDisplayed()
             )
         )
-        textView.check(matches(withText("Do you want to logout?")))
+        textView2.check(matches(withText("Do you want to logout?")))
 
-        val materialButton3 = onView(
+        val materialButton4 = onView(
             allOf(
                 withId(android.R.id.button1), withText("ОК"),
                 childAtPosition(
@@ -214,25 +305,12 @@ class ChangeDayTest {
                 )
             )
         )
-        materialButton3.perform(scrollTo(), click())
+        materialButton4.perform(scrollTo(), click())
 
         // Added a sleep statement to match the app's execution delay.
         // The recommended way to handle such scenarios is to use Espresso idling resources:
         // https://google.github.io/android-testing-support-library/docs/espresso/idling-resource/index.html
         Thread.sleep(700)
-    }
-
-    private fun getCurrentActivity(): Activity? {
-        val currentActivity = arrayOfNulls<Activity>(1)
-        InstrumentationRegistry.getInstrumentation().runOnMainSync(Runnable {
-            val allActivities =
-                ActivityLifecycleMonitorRegistry.getInstance()
-                    .getActivitiesInStage(Stage.RESUMED)
-            if (!allActivities.isEmpty()) {
-                currentActivity[0] = allActivities.iterator().next()
-            }
-        })
-        return currentActivity[0]
     }
 
     private fun childAtPosition(
