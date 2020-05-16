@@ -1,6 +1,7 @@
 package com.simply.schedule.ui.tasks
 
 import android.content.Context
+import android.content.Intent
 import android.database.Cursor
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -66,6 +67,11 @@ class TasksFragment : Fragment(), TaskCreationBottomSheetFragment.OnFragmentInte
 
         val listener = object : TasksAdapter.EventListener {
             override fun onItemClick(view: View, task: Task) {
+                val intent = Intent(context, EditTaskActivity::class.java)
+                val b = Bundle()
+                b.putLong(EditTaskActivity.EXTRA_TASK_ID, task.id!!)
+                intent.putExtras(b)
+                startActivity(intent)
             }
 
             override fun onTaskCheck(view: View, task: Task, checkBox: CheckBox) {
@@ -122,12 +128,16 @@ class TasksFragment : Fragment(), TaskCreationBottomSheetFragment.OnFragmentInte
             addToBackStack(null)
             commit()
         }
-        refreshList()
     }
 
     override fun onDetach() {
         super.onDetach()
         mFab.show()
+    }
+
+    override fun onStart() {
+        super.onStart()
+        refreshList()
     }
 
     private fun refreshList() {
@@ -170,7 +180,7 @@ class TasksFragment : Fragment(), TaskCreationBottomSheetFragment.OnFragmentInte
     }
 
     fun onBackPressed(): Boolean {
-        return taskCreationFragment!!.onBackPressed()
+        return taskCreationFragment?.onBackPressed() ?: false
     }
 
     override fun onBottomSheetStateChanged(state: Int) {

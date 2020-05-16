@@ -53,6 +53,15 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".MainActivity" />
         </activity>
+        <activity
+            android:name=".ui.tasks.EditTaskActivity"
+            android:label="@string/title_activity_edit_task"
+            android:parentActivityName=".MainActivity"
+            android:windowSoftInputMode="stateHidden|adjustResize">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".MainActivity" />
+        </activity>
 <!--        <activity-->
 <!--            android:name=".ui.schedule.ClassActivity"-->
 <!--            android:label="@string/title_activity_class"-->
