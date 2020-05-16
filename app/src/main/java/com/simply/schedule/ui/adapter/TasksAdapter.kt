@@ -54,7 +54,7 @@ class TasksAdapter(private val context: Context, val listener: EventListener?) :
 
             holder.itemView.apply {
                 setOnClickListener {
-                    val pos = holder.adapterPosition
+                    val pos = holder.adapterPosition - getHeaderCountForItem(holder.adapterPosition)
                     if (pos != RecyclerView.NO_POSITION) {
                         listener?.onItemClick(holder.itemView, list!![pos])
                     }

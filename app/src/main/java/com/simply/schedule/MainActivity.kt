@@ -79,13 +79,15 @@ class MainActivity : AppCompatActivity() {
         navView.selectedItemId = R.id.navigation_schedule
     }
 
-//    override fun onBackPressed() {
-//        if (taskManagerFragment.isAdded && taskManagerFragment.onBackPressed()) {
-//            return
-//        } else {
-//            super.onBackPressed()
-//        }
-//    }
+    override fun onBackPressed() {
+        val navHostFragment: NavHostFragment? = supportFragmentManager.findFragmentById(R.id.nav_host_fragment) as NavHostFragment?
+        val fragment = navHostFragment!!.childFragmentManager.fragments[0]
+        if (fragment is TasksFragment && fragment.onBackPressed()) {
+            return
+        } else {
+            super.onBackPressed()
+        }
+    }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
 //        menuInflater.inflate(R.menu.main_activity, menu)
