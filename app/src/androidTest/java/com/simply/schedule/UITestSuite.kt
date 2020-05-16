@@ -10,12 +10,12 @@ import org.junit.runners.Suite.SuiteClasses
  */
 @RunWith(Suite::class)
 @SuiteClasses(
-    FailedRegistrationTest::class,
+    /*FailedRegistrationTest::class,
     SuccessfulRegistrationTest::class,
     WrongPasswordLoginTest::class,
     WrongUsernameLoginTest::class,
     SuccessfulAuthTest::class,
     ChangeDayTest::class,
-    AddDeleteTeacherTest::class
+    AddDeleteTeacherTest::class*/
     )
 class UITestSuite

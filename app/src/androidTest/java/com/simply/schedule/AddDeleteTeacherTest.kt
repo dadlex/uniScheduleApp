@@ -23,7 +23,8 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import java.util.*
 
-/*FR22
+/*
+FR21 FR22
 1) Authorize
 2) Go to add subject dialog
 3) Go to add teacher dialog
@@ -261,7 +262,7 @@ class AddDeleteTeacherTest {
                 )
             )
         )
-        recyclerView.perform(actionOnItemAtPosition<ViewHolder>(0, longClick()))
+        recyclerView.perform(actionOnItemAtPosition<ViewHolder>(1, longClick()))
 
         val appCompatTextView = onView(
             allOf(
@@ -409,7 +410,7 @@ class AddDeleteTeacherTest {
                 )
             )
         )
-        recyclerView2.perform(actionOnItemAtPosition<ViewHolder>(0, longClick()))
+        recyclerView2.perform(actionOnItemAtPosition<ViewHolder>(1, longClick()))
 
         val appCompatTextView2 = onView(
             allOf(
